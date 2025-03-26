@@ -16,9 +16,8 @@ def OCP(func_des: Callable, partition: np.ndarray, alpha: float) -> None:  # ?
     F_mat = assemble_matrix(partition, F_k)[1:-1, 1:-1]
 
     F_mat_inv = sp.sparse.linalg.inv(F_mat)
-    y_sol = sp.sparse.linalg.spsolve(F_mat - B_mat @ F_mat_inv @ B_mat, F_mat @ d_arr)
+    y_sol = sp.sparse.linalg.spsolve(F_mat + alpha * B_mat @ F_mat_inv @ B_mat, F_mat @ d_arr)
     u_sol = sp.sparse.linalg.spsolve(F_mat, B_mat @ y_sol)
-
     # TODO: improve plotting
     plt.plot(nodes, d_arr, label="d")
     plt.plot(nodes, y_sol, label="y sol")
