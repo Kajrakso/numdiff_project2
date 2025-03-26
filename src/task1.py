@@ -55,39 +55,60 @@ def convergence_analysis():
     u_str = "x*x*x*sin(10*x)+exp(-2*x)*cos(3*pi*x)"
     u, _, du, _, f, f_sy = manufacture_solution(u_str)
 
-    N = 10
-    Ms = np.logspace(1, 3, num=N, dtype=int)
+    N = 50
+    Ms = np.logspace(1, 4, num=N, dtype=int)
 
     errs = np.zeros(N)
     for i, M in enumerate(Ms):
-        x_hat = np.linspace(0, 1, int(1000 / M), endpoint=False)
-
         partition = np.linspace(0, 1, M + 1)
         elements = get_elements(partition)
+        elements_sizes = get_element_sizes(partition)
 
         u_h = solve_Poisson_dirichlet(f, a=u(0), b=u(1), partition=partition)
-
+        err = 0
         for k in range(M):
+
+            phi = [
+                lambda x: psi[0](physical_element_to_reference_element(x, elements, k)),
+                lambda x: psi[1](physical_element_to_reference_element(x, elements, k)),
+                lambda x: psi[2](physical_element_to_reference_element(x, elements, k)),
+            ]
+
             a = u_h[local_to_global(k, 0)]
             b = u_h[local_to_global(k, 1)]
             c = u_h[local_to_global(k, 2)]
 
-            x = reference_element_to_physical_element(x_hat, elements, k)
+            x_k = elements[k, 0]
+            x_k1 = elements[k, 1]
 
-            solution = element_solution_polynomial(a, b, c, x_hat)
-            exact = u(x_hat)
+            integrand = lambda xi: (
+                u(reference_element_to_physical_element(xi, elements, k)) -
+                (a*psi[0](xi) + b*psi[1](xi) + c*psi[2](xi))
+            )**2
 
-            err = exact - solution
+            y, _ = sp.integrate.quad(integrand, 0, 1)
+            err += np.sqrt(elements_sizes[k]*y)
 
-        errs[i] = np.sqrt(1/M*np.sum(err**2))
+        errs[i] = err
 
-    plt.loglog(1/Ms, errs, 'o-')
+        # errs[i] = np.sqrt(1/M*np.sum(err**2))
+
+    p = np.polyfit(np.log(1 / Ms), np.log(errs), deg=1)
+    eq = (
+        r"$"
+        + r"\log(E_h) \approx "
+        + f"{p[0]:.3f}"
+        + r"\log(h)"
+        + r"+ \log(C)"
+        r"$"
+    )
+
+    plt.loglog(1/Ms, errs, 'o-', label=eq)
     plt.loglog(1/Ms, (1/Ms), label="h")
     plt.loglog(1/Ms, (1/Ms)**2, label="h^2")
     plt.loglog(1/Ms, (1/Ms)**3, label="h^3")
     plt.legend()
     plt.show()
-
 
 def main():
     # The number of intervals
@@ -105,8 +126,8 @@ def main():
 
     u_h = solve_Poisson_dirichlet(f, a=u(0), b=u(1), partition=partition)
 
-    plot_solution(M, partition, u_h, u, f_sy)
-    # convergence_analysis()
+    # plot_solution(M, partition, u_h, u, f_sy)
+    convergence_analysis()
 
 
 if __name__ == "__main__":
