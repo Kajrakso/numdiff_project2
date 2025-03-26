@@ -45,4 +45,4 @@ def func_3(x):
 if __name__ == "__main__":
     partition = np.linspace(0, 1, 100)
     alpha = 1e-3
-    OCP(func_2, partition, alpha)
+    OCP(func_1, partition, alpha)
