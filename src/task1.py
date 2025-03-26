@@ -6,7 +6,7 @@ from poisson_FEM import *
 
 def solve_Poisson_dirichlet(f, a, b, partition):
     # Assemble matrices
-    A = assemble_stiffness_matrix(partition)
+    A = assemble_matrix(partition, B_k)
     F = assemble_load_vector(partition, f)
 
     # Solve the equation

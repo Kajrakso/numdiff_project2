@@ -20,6 +20,12 @@ B_k = 1 / 3 * np.array([
     [1, -8, 7],
 ])
 
+F_k = 1 / 30 * np.array([
+    [4, 2, -1],
+    [2, 16, 2],
+    [-1, 2, 4],
+])
+
 
 def element_solution_polynomial(a, b, c, x):
     return a*psi[0](x) + b*psi[1](x) + c*psi[2](x)
@@ -59,7 +65,7 @@ def local_to_global(k, alpha):
     return 2 * k + alpha
 
 
-def assemble_stiffness_matrix(partition):
+def assemble_matrix(partition, element_matrix):
     M = len(partition) - 1
     N = 2 * M + 1
 
@@ -75,9 +81,9 @@ def assemble_stiffness_matrix(partition):
     ])
 
     # accumulated addition for each of the diagonals
-    np.add.at(diag_0, global_indices[:, :3], np.diag(B_k, k=0) / element_sizes[:, None])
-    np.add.at(diag_1, global_indices[:, :2], np.diag(B_k, k=1) / element_sizes[:, None])
-    np.add.at(diag_2, global_indices[:, :1], np.diag(B_k, k=2) / element_sizes[:, None])
+    np.add.at(diag_0, global_indices[:, :3], np.diag(element_matrix, k=0) / element_sizes[:, None])
+    np.add.at(diag_1, global_indices[:, :2], np.diag(element_matrix, k=1) / element_sizes[:, None])
+    np.add.at(diag_2, global_indices[:, :1], np.diag(element_matrix, k=2) / element_sizes[:, None])
 
     return sp.sparse.diags_array(
         [diag_2, diag_1, diag_0, diag_1, diag_2],
