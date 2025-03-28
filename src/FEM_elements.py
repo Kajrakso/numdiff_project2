@@ -94,5 +94,4 @@ def local_to_global(k: int, alpha: int) -> int:
 
 
 if __name__ == "__main__":
-    part = np.array([0, 0.6, 1])
-    print(get_nodes(part))
+    pass

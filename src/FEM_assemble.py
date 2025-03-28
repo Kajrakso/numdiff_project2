@@ -34,14 +34,12 @@ def assemble_mass_matrix(partition: np.ndarray, remove_boundary=False) -> np.nda
     diag_1 = np.zeros(N - 1)
     diag_2 = np.zeros(N - 2)
 
-    global_indices = np.array(
-        [theta(k, np.array([0, 1, 2])) for k in range(M)]
-    )
+    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
 
     # accumulated addition for each of the diagonals
-    np.add.at(diag_0, global_indices[:, :3], np.diag(F_k, k=0) * hk[:, None])
-    np.add.at(diag_1, global_indices[:, :2], np.diag(F_k, k=1) * hk[:, None])
-    np.add.at(diag_2, global_indices[:, :1], np.diag(F_k, k=2) * hk[:, None])
+    np.add.at(diag_0, indices[:, :3], np.diag(F_k, k=0) * hk[:, None])
+    np.add.at(diag_1, indices[:, :2], np.diag(F_k, k=1) * hk[:, None])
+    np.add.at(diag_2, indices[:, :1], np.diag(F_k, k=2) * hk[:, None])
     
     if remove_boundary:
         diag_0 = diag_0[1:-1]
@@ -82,14 +80,12 @@ def assemble_stiffness_matrix(
     diag_1 = np.zeros(N - 1)
     diag_2 = np.zeros(N - 2)
 
-    global_indices = np.array(
-        [theta(k, np.array([0, 1, 2])) for k in range(M)]
-    )
+    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
 
     # accumulated addition for each of the diagonals
-    np.add.at(diag_0, global_indices[:, :3], np.diag(B_k, k=0) / hk[:, None])
-    np.add.at(diag_1, global_indices[:, :2], np.diag(B_k, k=1) / hk[:, None])
-    np.add.at(diag_2, global_indices[:, :1], np.diag(B_k, k=2) / hk[:, None])
+    np.add.at(diag_0, indices[:, :3], np.diag(B_k, k=0) / hk[:, None])
+    np.add.at(diag_1, indices[:, :2], np.diag(B_k, k=1) / hk[:, None])
+    np.add.at(diag_2, indices[:, :1], np.diag(B_k, k=2) / hk[:, None])
 
     if remove_boundary:
         diag_0 = diag_0[1:-1]
@@ -147,11 +143,12 @@ def assemble_load_vector(partition: np.ndarray, f: Callable) -> np.ndarray:
         fx0 * Psi[2](xi[0]) + 4 * fx1 * Psi[2](xi[1]) + fx2 * Psi[2](xi[2]),
     ]).T
 
-    indices = np.array(
-        [theta(k, np.array([0, 1, 2])) for k in range(M)]
-    )
+    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
 
     np.add.at(F, indices, F_ks * hk[:, None])
 
     return F
 
+
+if __name__ == "__main__":
+    pass
