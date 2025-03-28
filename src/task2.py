@@ -2,22 +2,20 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from typing import Callable
-from FEM_elements import assemble_stiffness_matrix, assemble_mass_matrix, get_nodes
+from FEM_elements import get_nodes
+from FEM_assemble import assemble_stiffness_matrix, assemble_mass_matrix
 import plotting_tools
 
 
 def OCP(func_des: Callable, partition: np.ndarray, alpha: float) -> np.ndarray:
-    nodes = get_nodes(partition)
-    N = len(nodes) - 2
+    inner_nodes = get_nodes(partition)[1:-1]
+    N = len(inner_nodes)
 
     B = assemble_stiffness_matrix(partition, remove_boundary=True)
-    F_hat = assemble_mass_matrix(partition)[1:-1, :]
-    F = F_hat[:, 1:-1]
+    F = assemble_mass_matrix(partition, remove_boundary=True)
 
     A = sp.sparse.block_array([[F, alpha * B], [-B, F]])
-
-    d = func_des(nodes)
-    b = np.concatenate([F_hat @ d, np.zeros(N)])
+    b = np.concatenate([F @ func_des(inner_nodes), np.zeros(N)])
 
     sol = sp.sparse.linalg.spsolve(A, b)
 
@@ -42,36 +40,35 @@ def task2() -> None:
         res[(1 / 4 <= x) & (x <= 3 / 4)] = 1
         return res
 
-    M = 10
-    alpha = 1e-3
+    M = 20
+
+    alphas = (1e-1, 1e-3, 1e-8)
 
     partition = np.linspace(0, 1, M + 1)
-    nodes = get_nodes(partition)
     x = np.linspace(0, 1, 100)
 
-    fig, axs = plt.subplots(2, 3, figsize=(12, 8))
-    for i, yd in enumerate((yd1, yd2, yd3)):
-        y_sol, u_sol = OCP(yd, partition, alpha)
+    for k, alpha in enumerate(alphas):
+        fig, axs = plt.subplots(2, 3, figsize=(12, 8))
+        for i, yd in enumerate((yd1, yd2, yd3)):
+            y_sol, u_sol = OCP(yd, partition, alpha)
 
-        axs[0, i].plot(x, yd(x), label="desired temp. profile")
+            axs[0, i].plot(x, yd(x), label="desired temp. profile")
+            plotting_tools.plot_solution(axs[0, i], partition, y_sol, color="r")
+            axs[0, i].set(xlim=(0, 1), title=yd.__doc__)
 
-        plotting_tools.plot_solution(axs[0, i], partition, y_sol)
+            plotting_tools.plot_solution(axs[1, i], partition, u_sol, color="r")
+            axs[1, i].set(xlim=(0, 1), title="Distributed heat source $u$")
 
-        axs[0, i].set(xlim=(0, 1), title=yd.__doc__)
+            axs[0, i].legend()
 
-        axs[1, i].plot(nodes, u_sol, "r")
-        axs[1, i].set(xlim=(0, 1), title="Distributed heat source $u$")
-
-        axs[0, i].legend()
-
-    fig.suptitle(
-        r"OCP: partitioning of "
-        + f"$[0, 1]$ into ${M}$"
-        + r" segments, cost parameter: $\alpha=$"
-        + f"{alpha:.0e}."
-    )
-    fig.tight_layout()
-    fig.savefig(f"fig{alpha}.pdf")
+        fig.suptitle(
+            r"OCP: partitioning of "
+            + f"$[0, 1]$ into ${M}$"
+            + r" segments, cost parameter: $\alpha=$"
+            + f"{alpha:.0e}."
+        )
+        fig.tight_layout()
+        fig.savefig(f"task2_fig_{k}.pdf")
 
 
 if __name__ == "__main__":

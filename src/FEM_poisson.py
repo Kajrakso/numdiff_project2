@@ -1,69 +1,8 @@
 import numpy as np
 import scipy as sp
-import sympy as sy
-import FEM_elements
-from typing import Callable, Any
+from typing import Callable
 
-
-def get_element_load_vector(f: Callable, element: np.ndarray) -> np.ndarray:
-    """Compute the elemental load vector by using the Simpsons rule.
-
-    Args:
-        f (Callable): function
-        element (np.ndarray): element
-
-    Returns:
-        np.ndarray: elemental load vector
-    """
-
-    xi0 = 0
-    xi1 = 1 / 2
-    xi2 = 1
-
-    x0 = FEM_elements.reference_element_to_physical_element(xi0, element)
-    x1 = FEM_elements.reference_element_to_physical_element(xi1, element)
-    x2 = FEM_elements.reference_element_to_physical_element(xi2, element)
-
-    psi = FEM_elements.psi
-
-    return (
-        1
-        / 6
-        * np.array(
-            [
-                (f(x0) * psi[0](xi0) + 4 * f(x1) * psi[0](xi1) + f(x2) * psi[0](xi2)),
-                (f(x0) * psi[1](xi0) + 4 * f(x1) * psi[1](xi1) + f(x2) * psi[1](xi2)),
-                (f(x0) * psi[2](xi0) + 4 * f(x1) * psi[2](xi1) + f(x2) * psi[2](xi2)),
-            ]
-        )
-    )
-
-
-def assemble_load_vector(partition: np.ndarray, f: Callable) -> np.ndarray:
-    """Constructs the load vector given a partition and the function f,
-    the RHS of the Poisson equation: -u_xx = f(x).
-
-    Args:
-        partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
-        f (Callable): function
-
-    Returns:
-        np.ndarray: load vector
-    """
-    M = len(partition) - 1
-    N = 2 * M + 1
-    F = np.zeros(N)
-
-    elements = FEM_elements.get_elements(partition)
-    element_sizes = FEM_elements.get_element_sizes(partition)
-
-    for k in range(M):
-        F_k = get_element_load_vector(f, elements[k])
-        F[FEM_elements.local_to_global(k, 0) : FEM_elements.local_to_global(k + 1, 0) + 1] += (
-            F_k * element_sizes[k]
-        )
-
-    return F
+import FEM_assemble
 
 
 def impose_dirichlet(A, F, a, b):
@@ -95,6 +34,33 @@ def impose_dirichlet_neumann(A, F, a, b):
     A[0, 0] = 1
 
     F[0] = a
+
+
+def solve_Poisson_dirichlet(
+    f: Callable, a: float, b: float, partition: np.ndarray
+) -> np.ndarray:
+    """Solve the 1D Poisson equation with dirichlet boundary conditions: `-u_xx = f(x), u(0)=a, u(1)=b`.
+
+    Args:
+        f (Callable): RHS of the Poisson equation.
+        a (float): u(0) = a
+        b (float): u(1) = b
+        partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
+
+    Returns:
+        np.ndarray: solution vector.
+    """
+    # Assemble matrices
+    A = FEM_assemble.assemble_stiffness_matrix(partition)
+    F = FEM_assemble.assemble_load_vector(partition, f)
+
+    impose_dirichlet(A, F, a=a, b=b)
+
+    # Solve the equation
+    u_h = sp.sparse.linalg.spsolve(A, F)
+
+    # todo: skal vi konstruere en funksjon her, eller bare returnere koordinatene?
+    return u_h
 
 
 if __name__ == "__main__":

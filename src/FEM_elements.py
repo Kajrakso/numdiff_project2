@@ -1,31 +1,20 @@
 import numpy as np
 import scipy as sp
-
+from typing import Callable
 
 """The shape functions defined on the reference element [0, 1] """
-psi = (
+Psi = (
     lambda x: 2 * x**2 - 3 * x + 1,
     lambda x: -4 * x**2 + 4 * x + 0,
     lambda x: 2 * x**2 - 1 * x + 0,
 )
 
-
-def element_solution_polynomial(
-    a: float, b: float, c: float, x: float | np.ndarray
-) -> float | np.ndarray:
-    """Evaluate the Lagrange interpolating polynomial at x
-    defined by the points (0, a), (1/2, b), (1, c).
-
-    Args:
-        a (float): y coord of the point (0, a)
-        b (float): y coord of the point (1/2, b)
-        c (float): y coord of the point (1, c)
-        x (float | np.ndarray): x
-
-    Returns:
-        float | np.ndarray: y
-    """
-    return a * psi[0](x) + b * psi[1](x) + c * psi[2](x)
+"""The derivative of the shape functions defined on the reference element [0, 1] """
+dPsi = (
+    lambda x: 4 * x - 3,
+    lambda x: -8 * x + 4,
+    lambda x: 4 * x - 1,
+)
 
 
 def get_nodes(partition: np.ndarray) -> np.ndarray:
@@ -102,112 +91,6 @@ def local_to_global(k: int, alpha: int) -> int:
         int: global index
     """
     return 2 * k + alpha
-
-
-def assemble_mass_matrix(partition: np.ndarray, remove_boundary=False) -> np.ndarray:
-    """Assembles the mass matrix.
-
-    Args:
-        partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
-        remove_boundary (bool, optional): If True, the first and last rows and columns are removes from the matrix. Defaults to False.
-
-    Returns:
-        np.ndarray: mass matrix
-    """
-    M = len(partition) - 1
-    N = 2 * M + 1
-
-    element_sizes = get_element_sizes(partition)
-
-    # elemental mass matrix
-    F_k = (
-        1
-        / 30
-        * np.array(
-            [
-                [4, 2, -1],
-                [2, 16, 2],
-                [-1, 2, 4],
-            ]
-        )
-    )
-
-    # build the diagonals of the sparse matrix
-    diag_0 = np.zeros(N)
-    diag_1 = np.zeros(N - 1)
-    diag_2 = np.zeros(N - 2)
-
-    global_indices = np.array(
-        [local_to_global(k, np.array([0, 1, 2])) for k in range(M)]
-    )
-
-    if remove_boundary:
-        diag_0 = diag_0[1:-1]
-        diag_1 = diag_1[1:-1]
-        diag_2 = diag_2[1:-1]
-
-    # accumulated addition for each of the diagonals
-    np.add.at(diag_0, global_indices[:, :3], np.diag(F_k, k=0) * element_sizes[:, None])
-    np.add.at(diag_1, global_indices[:, :2], np.diag(F_k, k=1) * element_sizes[:, None])
-    np.add.at(diag_2, global_indices[:, :1], np.diag(F_k, k=2) * element_sizes[:, None])
-
-    return sp.sparse.diags_array(
-        [diag_2, diag_1, diag_0, diag_1, diag_2], offsets=[-2, -1, 0, 1, 2]
-    ).tocsc()
-
-
-def assemble_stiffness_matrix(
-    partition: np.ndarray, remove_boundary=False
-) -> np.ndarray:
-    """Assembles the stiffness matrix.
-
-    Args:
-        partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
-        remove_boundary (bool, optional): If True, the first and last rows and columns are removes from the matrix. Defaults to False.
-
-    Returns:
-        np.ndarray: stiffness matrix
-    """
-    M = len(partition) - 1
-    N = 2 * M + 1
-
-    element_sizes = get_element_sizes(partition)
-
-    # elemental stiffness matrix
-    B_k = (
-        1
-        / 3
-        * np.array(
-            [
-                [7, -8, 1],
-                [-8, 16, -8],
-                [1, -8, 7],
-            ]
-        )
-    )
-
-    # build the diagonals of the sparse matrix
-    diag_0 = np.zeros(N)
-    diag_1 = np.zeros(N - 1)
-    diag_2 = np.zeros(N - 2)
-
-    global_indices = np.array(
-        [local_to_global(k, np.array([0, 1, 2])) for k in range(M)]
-    )
-
-    # accumulated addition for each of the diagonals
-    np.add.at(diag_0, global_indices[:, :3], np.diag(B_k, k=0) / element_sizes[:, None])
-    np.add.at(diag_1, global_indices[:, :2], np.diag(B_k, k=1) / element_sizes[:, None])
-    np.add.at(diag_2, global_indices[:, :1], np.diag(B_k, k=2) / element_sizes[:, None])
-
-    if remove_boundary:
-        diag_0 = diag_0[1:-1]
-        diag_1 = diag_1[1:-1]
-        diag_2 = diag_2[1:-1]
-
-    return sp.sparse.diags_array(
-        [diag_2, diag_1, diag_0, diag_1, diag_2], offsets=[-2, -1, 0, 1, 2]
-    ).tocsc()
 
 
 if __name__ == "__main__":
