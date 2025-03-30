@@ -9,15 +9,15 @@ from sympy import sin, cos, exp, pi
 import FEM_elements
 from FEM_elements import reference_element_to_physical_element as Phi_k
 from FEM_elements import local_to_global as theta
-from FEM_elements import Psi, dPsi
 import FEM_poisson
 import plotting_tools
 
 
 def manufacture_poisson_functions(
-    u_str: str,
+    u_str: str, logging=False
 ) -> tuple[Callable, Any, Callable, Any, Callable, Any]:
-    """Manufactures the following functions given a solution (in str format) of the 1D poisson equation: -u_xx = f(x).
+    """Manufactures the following functions given a solution (in str format)
+    of the 1D poisson equation: -u_xx = f(x).
     Note: the relevant sympy expressions used have to be imported.
     - u: solution function
     - u_sy: sympy expression for the solution function
@@ -27,25 +27,27 @@ def manufacture_poisson_functions(
     - f_sy: sympy expression for the rhs of the 1D Poisson equation: -u_xx = f(x)
 
     Args:
-        u_str (str): solution function in str format. Make sure the relevant sympy expressions are imported.
+        u_str (str): solution function in str format.
+            Make sure the relevant sympy expressions are imported.
             Example: u_str = "sin(x)*exp(-x)"
+        logging (Bool): if True, the manufactured functions will get printed. Defaults to False.
 
     Returns:
         tuple[Callable, Any, Callable, Any, Callable, Any]: see description
     """
-
-    print(f"Manufacturing solution for the Poisson equation: -u_xx = f(x)")
+    if logging:
+        print(f"Manufacturing solution for the Poisson equation: -u_xx = f(x)")
 
     x = sy.symbols("x")
 
     u_sy = eval(u_str)
-    print(f"u = {u_sy}")
-
     du_sy = sy.simplify(sy.diff(u_sy, x))
-    print(f"u' = {du_sy}")
-
     f_sy = sy.simplify(-sy.diff(u_sy, x, x))
-    print(f"f = {f_sy}")
+
+    if logging:
+        print(f"u = {u_sy}")
+        print(f"u' = {du_sy}")
+        print(f"f = {f_sy}")
 
     u = sy.lambdify((x,), u_sy, modules="numpy")
     du = sy.lambdify((x,), du_sy, modules="numpy")
@@ -73,52 +75,71 @@ def convergence_plot(Ms, L2errs, H1errs, filename="conv_plot.pdf"):
     fig.savefig(filename)
 
 
-def convergence_analysis(u, du, f, Ms):
+def poly_vec(polys, xi, deg):
+    return np.array([
+        polys[i](xi) for i in range(deg + 1)
+    ])
+
+
+def calculate_errors(u, du, u_h, partition, Psi, dPsi, deg):
+    M = len(partition) - 1          # number of elements
+
+    elements = FEM_elements.get_elements(partition)
+    elements_sizes = FEM_elements.get_element_sizes(partition)
+
+    L2err_squared = H1err_squared = 0
+    for k in range(M):
+        elem = elements[k]
+        hk = elements_sizes[k]
+
+        # extract the coordinates of our basis functions for segment k
+        u_hk = u_h[theta(k, np.arange(deg + 1), deg=deg)]
+
+        def L2integrand(xi):
+            return (u(Phi_k(xi, elem)) - u_hk @ poly_vec(Psi, xi, deg)) ** 2
+
+        def H1integrand(xi):
+            return (du(Phi_k(xi, elem)) - 1/hk * u_hk @ poly_vec(dPsi, xi, deg)) ** 2
+
+        L2_y, _ = sp.integrate.quad(L2integrand, 0, 1)
+        H1_y, _ = sp.integrate.quad(H1integrand, 0, 1)
+
+        L2err_squared += hk * L2_y
+        H1err_squared += hk * (H1_y)
+
+    return np.sqrt(L2err_squared), np.sqrt(L2err_squared + H1err_squared)
+
+
+def convergence_analysis(u, du, f, Ms, deg):
     N = len(Ms)
+
+    Psi = FEM_elements.construct_Psi(deg=deg)
+    dPsi = FEM_elements.construct_dPsi(deg=deg)
 
     L2errs = np.zeros(N)
     H1errs = np.zeros(N)
     for i, M in enumerate(Ms):
         partition = np.linspace(0, 1, M + 1)
-        elements = FEM_elements.get_elements(partition)
-        elements_sizes = FEM_elements.get_element_sizes(partition)
 
-        u_h = FEM_poisson.solve_Poisson_dirichlet(f, a=u(0), b=u(1), partition=partition)
-        
-        L2err_squared = H1err_squared = 0
-        for k in range(M):
-            elem = elements[k]
-            hk = elements_sizes[k]
+        u_h = FEM_poisson.solve_Poisson_dirichlet(f, a=u(0), b=u(1), partition=partition, deg=deg)
 
-            a = u_h[theta(k, 0)]
-            b = u_h[theta(k, 1)]
-            c = u_h[theta(k, 2)]
+        L2_err, H1_err = calculate_errors(u, du, u_h, partition, Psi, dPsi, deg)
 
-            def L2integrand(xi):
-                return (u(Phi_k(xi, elem)) - (a*Psi[0](xi) + b*Psi[1](xi) + c*Psi[2](xi))) ** 2
-
-            def H1integrand(xi):
-                return (du(Phi_k(xi, elem)) - 1/hk * (a*dPsi[0](xi) + b*dPsi[1](xi) + c*dPsi[2](xi))) ** 2
-
-            L2_y, _ = sp.integrate.quad(L2integrand, 0, 1)
-            H1_y, _ = sp.integrate.quad(H1integrand, 0, 1)
-
-            L2err_squared += hk * L2_y
-            H1err_squared += hk * (H1_y)
-
-        L2errs[i] = np.sqrt(L2err_squared)
-        H1errs[i] = np.sqrt(L2err_squared + H1err_squared)
+        L2errs[i] = L2_err
+        H1errs[i] = H1_err
 
     return Ms, L2errs, H1errs
 
 
 def test_solution(filename="task1_test_sol.pdf"):
-    # The number of intervals
+    # degree of the basis polynomials
+    deg = 2
+
+    # The number of elements
     M = 5
 
     # start and end point.
-    xi = 0
-    xf = 1
+    xi, xf = 0, 1
 
     # A uniform grid
     partition = np.linspace(xi, xf, M + 1)
@@ -130,7 +151,9 @@ def test_solution(filename="task1_test_sol.pdf"):
     u_str = "x*(x-1)*sin(3*pi*x)"
     u, _, _, _, f, f_sy = manufacture_poisson_functions(u_str)
 
-    u_h = FEM_poisson.solve_Poisson_dirichlet(f, a=u(xi), b=u(xf), partition=partition)
+    u_h = FEM_poisson.solve_Poisson_dirichlet(
+        f, a=u(xi), b=u(xf), partition=partition, deg=deg
+    )
 
     fig, ax = plt.subplots()
     ax.plot(
@@ -138,22 +161,27 @@ def test_solution(filename="task1_test_sol.pdf"):
         u(np.linspace(xi, xf, 100)),
         label="u(x)",
     )
-    plotting_tools.plot_solution(ax, partition, u_h, label="u_h(x)")
-    ax.set(title=r"$-\Delta u = f, u(x) = "+ f"{u_str}" + "$", xlabel="$x$", ylabel="$u(x), u_h(x)$")
+    plotting_tools.plot_solution(ax, partition, u_h, label="u_h(x)", K=1000, deg=deg)
+    ax.set(
+        title=r"$-\Delta u = f, u(x) = " + f"{u_str}" + "$",
+        xlabel="$x$",
+        ylabel="$u(x), u_h(x)$",
+    )
     ax.legend()
     fig.savefig(filename)
 
 
 def main():
     test_solution()
+
     u_str = "x*(x-1)*sin(3*pi*x)"  # define the test solution
     u, _, du, _, f, _ = manufacture_poisson_functions(u_str)
 
-
     Ms = np.logspace(1, 3.5, num=10, dtype=int)  # define the number of segments
-    Ms, L2errs, H1errs = convergence_analysis(u, du, f, Ms)
+    Ms, L2errs, H1errs = convergence_analysis(u, du, f, Ms, deg=2)
     convergence_plot(Ms, L2errs, H1errs, filename="task1_conv_plot.pdf")
 
 
 if __name__ == "__main__":
     main()
+
