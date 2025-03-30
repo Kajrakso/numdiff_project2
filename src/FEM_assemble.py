@@ -1,106 +1,124 @@
 import numpy as np
 import scipy as sp
 from typing import Callable
+
 import FEM_elements
 from FEM_elements import local_to_global as theta
 from FEM_elements import reference_element_to_physical_element as Phi_k
-from FEM_elements import Psi
 
 
-def assemble_mass_matrix(partition: np.ndarray, remove_boundary=False) -> np.ndarray:
+def construct_elemental_mass_matrix(deg: int) -> np.ndarray:
+    Psis = FEM_elements.construct_Psi(deg)
+
+    B_k = np.zeros((deg + 1, deg + 1))
+    for i in range(deg + 1):
+        for j in range(i, deg + 1):
+            integral, _ = sp.integrate.fixed_quad(
+                lambda x: Psis[i](x)*Psis[j](x), 0, 1, n=(deg + 1)
+            )
+            B_k[i, j] = integral
+            B_k[j, i] = integral
+
+    return B_k
+
+
+def construct_elemental_stiffness_matrix(deg: int) -> np.ndarray:
+    dPsis = FEM_elements.construct_dPsi(deg)
+
+    B_k = np.zeros((deg + 1, deg + 1))
+    for i in range(deg + 1):
+        for j in range(i, deg + 1):
+            integral, _ = sp.integrate.fixed_quad(
+                lambda x: dPsis[i](x)*dPsis[j](x), 0, 1, n=deg
+            )
+            B_k[i, j] = integral
+            B_k[j, i] = integral
+
+    return B_k
+
+
+def assemble_mass_matrix(partition: np.ndarray, deg: int) -> np.ndarray:
     """Assembles the mass matrix.
 
     Args:
         partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
-        remove_boundary (bool, optional): If True, the first and last rows and columns are removes from the matrix. Defaults to False.
+        deg (int): degree of the basis polynomials
 
     Returns:
         np.ndarray: mass matrix
     """
-    M = len(partition) - 1
-    N = 2 * M + 1
-    
+    M = len(partition) - 1          # number of segments
+    N = deg * M + 1                 # number of nodes
+
     hk = FEM_elements.get_element_sizes(partition)
 
     # elemental mass matrix
-    F_k = 1 / 30 * np.array([
-        [4, 2, -1],
-        [2, 16, 2],
-        [-1, 2, 4],
-    ])
+    F_k = construct_elemental_mass_matrix(deg=deg)
 
     # build the diagonals of the sparse matrix
-    diag_0 = np.zeros(N)
-    diag_1 = np.zeros(N - 1)
-    diag_2 = np.zeros(N - 2)
+    diags = [np.zeros(N - i) for i in range(deg + 1)]
+    offsets = np.arange(deg + 1)
 
-    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
+    # prepare array of indices
+    idxs = theta(np.arange(M)[:, None], offsets, deg=deg)
 
     # accumulated addition for each of the diagonals
-    np.add.at(diag_0, indices[:, :3], np.diag(F_k, k=0) * hk[:, None])
-    np.add.at(diag_1, indices[:, :2], np.diag(F_k, k=1) * hk[:, None])
-    np.add.at(diag_2, indices[:, :1], np.diag(F_k, k=2) * hk[:, None])
-    
-    if remove_boundary:
-        diag_0 = diag_0[1:-1]
-        diag_1 = diag_1[1:-1]
-        diag_2 = diag_2[1:-1]
+    for i, _diag in enumerate(diags):
+        np.add.at(_diag, idxs[:, :(deg + 1 - i)], np.diag(F_k, k=i) * hk[:, None])
 
-    return sp.sparse.diags_array(
-        [diag_2, diag_1, diag_0, diag_1, diag_2], offsets=[-2, -1, 0, 1, 2]
-    ).tocsr()
+    # assemble the upper diagonals!
+    F = sp.sparse.diags_array(diags, offsets=offsets).tolil()
+
+    # make F symmetric!
+    rows, cols = F.nonzero()
+    F[cols, rows] = F[rows, cols]
+
+    return F.tolil()
 
 
-def assemble_stiffness_matrix(
-    partition: np.ndarray, remove_boundary=False
-) -> np.ndarray:
+def assemble_stiffness_matrix(partition: np.ndarray, deg: int) -> np.ndarray:
     """Assembles the stiffness matrix.
 
     Args:
         partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
-        remove_boundary (bool, optional): If True, the first and last rows and columns are removed from the matrix. Defaults to False.
+        deg (int): degree of the basis polynomials
 
     Returns:
         np.ndarray: stiffness matrix
     """
-    M = len(partition) - 1
-    N = 2 * M + 1
+    M = len(partition) - 1          # number of segments
+    N = deg * M + 1                 # number of nodes
 
     hk = FEM_elements.get_element_sizes(partition)
 
     # elemental stiffness matrix
-    B_k = 1 / 3 * np.array([
-        [7, -8, 1],
-        [-8, 16, -8],
-        [1, -8, 7],
-    ])
+    B_k = construct_elemental_stiffness_matrix(deg=deg)
 
-    # build the diagonals of the sparse matrix
-    diag_0 = np.zeros(N)
-    diag_1 = np.zeros(N - 1)
-    diag_2 = np.zeros(N - 2)
+    # prepare the diagonals of the sparse matrix
+    diags = [np.zeros(N - i) for i in range(deg + 1)]
+    offsets = np.arange(deg + 1)
 
-    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
+    # prepare array of indices
+    idxs = theta(np.arange(M)[:, None], offsets, deg=deg)
 
     # accumulated addition for each of the diagonals
-    np.add.at(diag_0, indices[:, :3], np.diag(B_k, k=0) / hk[:, None])
-    np.add.at(diag_1, indices[:, :2], np.diag(B_k, k=1) / hk[:, None])
-    np.add.at(diag_2, indices[:, :1], np.diag(B_k, k=2) / hk[:, None])
+    for i, _diag in enumerate(diags):
+        np.add.at(_diag, idxs[:, :(deg + 1 - i)], np.diag(B_k, k=i) / hk[:, None])
 
-    if remove_boundary:
-        diag_0 = diag_0[1:-1]
-        diag_1 = diag_1[1:-1]
-        diag_2 = diag_2[1:-1]
+    # assemble the upper diagonals!
+    B = sp.sparse.diags_array(diags, offsets=offsets).tolil()
 
-    return sp.sparse.diags_array(
-        [diag_2, diag_1, diag_0, diag_1, diag_2], offsets=[-2, -1, 0, 1, 2]
-    ).tocsr()
+    # make B symmetric!
+    rows, cols = B.nonzero()
+    B[cols, rows] = B[rows, cols]
+
+    return B.tolil()
 
 
 # TODO: Cool function but not needed. Delete it!
 def get_element_load_vector_fancy_but_slow(f, element):
     # vector of Psis: [Psi_0, Psi_1, Psi_2]
-    Psis = np.array(Psi)
+    Psis = FEM_elements.construct_Psi(2)
 
     # nodes on ref. element: [xi_0, xi_1, xi_2]
     xi = np.array([0, 1/2, 1])
@@ -112,43 +130,72 @@ def get_element_load_vector_fancy_but_slow(f, element):
     return eval_outer(Psis, xi) @ np.diag([1/6, 2/3, 1/6]) @ f(Phi_k(xi, element))
 
 
-def assemble_load_vector(partition: np.ndarray, f: Callable) -> np.ndarray:
-    """Constructs the load vector given a partition and the function f,
+def assemble_load_vector(partition: np.ndarray, f: Callable, deg: int) -> np.ndarray:
+    """Constructs the load vector given a partition and f,
     the RHS of the Poisson equation: -u_xx = f(x).
 
     Args:
         partition (np.ndarray): partition of an interval: `x0 < x1 < ... < xM`.
         f (Callable): function
+        deg (int): degree of the basis polynomials
 
     Returns:
         np.ndarray: load vector
     """
-    M = len(partition) - 1
-    N = 2 * M + 1
+    M = len(partition) - 1          # number of segments
+    N = deg * M + 1                 # number of nodes
+
+    # prepare the load vector
     F = np.zeros(N)
 
-    x = FEM_elements.get_nodes(partition)
+    elements = FEM_elements.get_elements(partition)
     hk = FEM_elements.get_element_sizes(partition)
 
-    xi = np.array([0, 1/2, 1])
-    fx = f(x)
-    fx0 = fx[:-1:2]
-    fx1 = fx[1::2]
-    fx2 = fx[2::2]
+    Psi = FEM_elements.construct_Psi(deg=deg)
 
-    # Simpsons rule on three points
-    F_ks = 1 / 6 * np.array([
-        fx0 * Psi[0](xi[0]) + 4 * fx1 * Psi[0](xi[1]) + fx2 * Psi[0](xi[2]),
-        fx0 * Psi[1](xi[0]) + 4 * fx1 * Psi[1](xi[1]) + fx2 * Psi[1](xi[2]),
-        fx0 * Psi[2](xi[0]) + 4 * fx1 * Psi[2](xi[1]) + fx2 * Psi[2](xi[2]),
+    # integration nodes for Simpsons rule
+    xi = FEM_elements.get_nodes(np.array([0, 1]), deg=deg)
+
+    def integrand(xi, i):
+        return f(Phi_k(xi, elements)) * Psi[i](xi)
+
+    # elemental load vectors
+    F_ks = np.array([
+        sp.integrate.simpson(integrand(xi, i), xi) for i in range(deg + 1)
     ]).T
 
-    indices = theta(np.arange(M)[:, None], np.array([0, 1, 2]))
+    # array of indices
+    idxs = theta(np.arange(M)[:, None], np.arange(deg + 1), deg=deg)
 
-    np.add.at(F, indices, F_ks * hk[:, None])
+    # accumulated addition
+    np.add.at(F, idxs, F_ks * hk[:, None])
 
     return F
 
 
 if __name__ == "__main__":
-    pass
+    """
+    np.set_printoptions(precision=2)
+    print("degree 2")
+    part = np.linspace(0, 1, 3)
+    deg = 2
+    print(assemble_mass_matrix(part, deg=deg).toarray())
+    print(assemble_stiffness_matrix(part, deg=deg).toarray())
+    """
+
+    M = 10
+    deg = 2
+    print(assemble_load_vector(np.linspace(0, 1, M+1), lambda x: x**2 + 1, deg=deg))
+    # print(assemble_load_vector_old(np.linspace(0, 1, 4), lambda x: x**2 + 1))
+
+    """
+    deg = 2
+    Psis = FEM_elements.construct_Psi(deg)
+    print(1, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=1))
+    print(2, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=2))
+    print(3, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=3))
+    print(4, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=4))
+    print(5, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=5))
+    print(6, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=6))
+    print(7, sp.integrate.fixed_quad(lambda x: Psis[0](x)*Psis[0](x), 0, 1, n=7))
+    """
