@@ -20,28 +20,33 @@ We approximate (\ref{eq:OCP}) as
 \end{equation}
 where $\bar{y}_d$ is the interpolation of $y_d$ onto $X_h^2$, $V_h = X_h^2 \cap H_0^1 (\Omega)$ and $a(u, v) = \int_0^1 u_x v_x dx$.
 \subsection{TODO: utledning}
-To find a solution we interpret this as a minimizaiton problem for the unknown coefficients $\mathbf{u} = \{u_1, \dots, u_{2N-1} \}$, $\mathbf{y} = \{y_1, \dots, y_{2N-1} \}$ as
+To find a solution we interpret this as a minimization problem for the unknown coefficients $\mathbf{u} = \{u_1, \dots, u_{2N-1} \}$, $\mathbf{y} = \{y_1, \dots, y_{2N-1} \}$ as
 \begin{equation}
     \label{eq:OCP_coeff}
     \min_{\mathbf{y,u} \in \mathds{R}^{2N-1}} G(\mathbf{y, u}) \quad \text{s.t.} \quad B\mathbf{y} = F\mathbf{u}.
 \end{equation}
 We find $G(\mathbf{y, u})$ by rewriting the objective function of (\ref{eq:OCP_FE}).
-Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=1}^{2N-1}d_i\varphi_i$, where $\mathbf{d}$ are coefficients, giving the form
-\begin{align*}
-    G(\mathbf{y, u}) = \frac{1}{2}\int_0^1\left( \sum_{i=1}^{2N-1}\left( y_i -d_i\right) \varphi_i \right)^2dx + \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx     
-\end{align*}
 For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}). If the constraint holds for some $\varphi_i$ it holds for all $v_h\in V_H$ which gives us the forms,
 $$a(y_h, \varphi_j) = \int_0^1 \left( \sum_{i=1}^{2N-1} y_i \varphi_i' \varphi_j' \right)dx =\sum_{i=1}^{2N-1} y_i\int_0^1 \left( \varphi_i' \varphi_j' \right)dx,$$
-which can be written as $B\mathbf{y}$, where $B_{i,j} = \int_0^1\left( \varphi_i' \varphi_j' \right)dx$, and  
+which can be written as $B\mathbf{y}$, where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$, and  
 $$\langle u_h, \varphi_j \rangle_{L^2(\Omega)} = \int_0^1 \sum_{i=1}^{2N-1} u_i \varphi_i \varphi_j dx =\sum_{i=1}^{2N-1} u_i \int_0^1  \varphi_i \varphi_j dx,$$
 which can be written as $F\mathbf{u}$, where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$.
 One can see that $B$ is the same as the stiffness matrix.
 
+Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=1}^{2N-1}d_i\varphi_i$, where $\mathbf{d}$ are coefficients, giving the form
+\begin{align*}
+    G(\mathbf{y, u}) &= \frac{1}{2}\int_0^1\left( \sum_{i=1}^{2N-1}\left( y_i -d_i\right) \varphi_i \right)^2dx + \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx \\    
+    &=\frac{1}{2} \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1}\left( y_i -d_i\right)\left( y_j -d_j\right) \int_0^1  \varphi_i \varphi_j dx + \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j\int_0^1
+     \varphi_i \varphi_j dx    \\
+     &= \frac{1}{2} \left( \mathbf{y} - \mathbf{d} \right)^T F \left( \mathbf{y} - \mathbf{d} \right) + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u} 
+\end{align*}
+
 To find a solution to equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
-\begin{equation}
+\begin{align}
     \label{eq:OCP_lagrangian}
-    \mathcal{L}(\mathbf{y, u, \lambda}) = G(\mathbf{y, u}) - \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right),
-\end{equation}
+    \mathcal{L}(\mathbf{y, u, \lambda}) &= G(\mathbf{y, u}) - \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right) \\
+    &= \frac{1}{2} \left( \mathbf{y} - \mathbf{d} \right)^T F \left( \mathbf{y} - \mathbf{d} \right) + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u}- \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right) ,
+\end{align}
 where $\mathbf{\lambda} \in \mathds{R}^{2N-1}$ is the vector of Lagrange multipliers.
 The solution is then found by solving
 \begin{align}
@@ -51,18 +56,24 @@ The solution is then found by solving
     \nabla_{\mathbf{\mathbf{\lambda}}}\mathcal{L} = 0 \\
 \end{align}
 for $\mathbf{y}$ and $\mathbf{u}$.
-$$\nabla_{\mathbf{y}}\mathcal{L} = \nabla_\mathbf{y}G(\mathbf{y, u}) - B^T\mathbf{\lambda},$$
-where 
-$$\left( \nabla_\mathbf{y}G(\mathbf{y, u}) \right)_k = \int_0^1\sum_{i=1}^{2N-1}(y_i - d_i) \varphi_i \varphi_k dx = \sum_{i=1}^{2N-1} (y_i - d_i) \int_0^1\varphi_i \varphi_k dx ,$$
-which gives 
-$$\nabla_{\mathbf{y}}\mathcal{L} = F(\mathbf{y} - \mathbf{d}) - B^T\mathbf{\lambda}.$$
-$$\nabla_{\mathbf{u}}\mathcal{L} = \nabla_\mathbf{u}G(\mathbf{y, u}) + F^T\mathbf{\lambda},$$
-where
-$$\left( \nabla_\mathbf{u}G(\mathbf{y, u}) \right)_k = \alpha \int_0^1\sum_{i=1}^{2N-1} u_i  \varphi_i \varphi_k dx = \sum_{i=1}^{2N-1} u_i \int_0^1\varphi_i \varphi_k dx ,$$
-which gives
-$$\nabla_{\mathbf{u}}\mathcal{L} = \alpha F\mathbf{u} + F^T\mathbf{\lambda}.$$
-$$\nabla_{\mathbf{\lambda}}\mathcal{L} = -B^T \mathbf{y} + F^T \mathbf{y}.$$
-Since both $B$ and $F$ are symmetric, we see that $\alpha \mathbf{u}= -\mathbf{\lambda}$, which gives the system
+Since $F$ and $B$ are symmetric, the expressions become
+\begin{align}
+    \nabla_{\mathbf{y}}\mathcal{L} =& F \left( \mathbf{y}- \mathbf{d}\right) - B\mathbf{\lambda} \\
+    \nabla_{\mathbf{u}}\mathcal{L} =&  \alpha F \mathbf{u}+ F\mathbf{\lambda} \\
+    \nabla_{\mathbf{\lambda}}\mathcal{L} =& -B \mathbf{y} + F \mathbf{y}.
+\end{align}
+\begin{lemma}
+    $F$ is invertible.    
+\end{lemma}
+\begin{proof}
+    \label{lemma:F_invertible}
+    The basis functions $\varphi_i$ are linearly independent, since they are Lagrange nodal polynomials and our nodes are unique.
+    Since $F_{i,j} = \int_0^1 \varphi_i \varphi_j dx = \langle \varphi_i, \varphi_j \rangle_{L^2(\Omega)}$,
+    $F$ is a Gram-matrix corresponding to the vector space of our basis functions.
+    Combining these results gives us that $F$ is positive definite and therefore invertible.
+\end{proof}
+Since $F$ is invertible, by lemma (\ref{lemma:F_invertible}), and symmetric, we see that $\alpha \mathbf{u}= -\mathbf{\lambda}$. 
+This gives the system
 \begin{align}
     \label{eq:lagrange_conditions}
      F \mathbf{y} + \alpha B \mathbf{u} &= F\mathbf{d} \\
@@ -79,12 +90,11 @@ $$
     \mathbf{u}
 \end{bmatrix}
 = 
-\begin{bmatrix}
-    Fd \\
+\begin{bmatrix} Fd \\
     \mathbf{0}
 \end{bmatrix}.
 $$
-This system can then be easily solved.
+This is then a linear system that can be solved.
 TODO: mer om hvordan den spesifikke implementasjonen???
 
 \subsection{TODO: Examples}
