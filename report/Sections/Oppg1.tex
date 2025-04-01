@@ -1,14 +1,33 @@
 \section{The Poisson Equation}
 
+TODO: consider text size of the plots!
+
 The Poisson equation with dirichlet boundary conditions is
 \begin{equation}
     - \Delta u = f, u(0) = a, u(1) = b
 \end{equation}
 
+We assume that the reader is familiar with the
+derivation of the weak formulation of the Poisson equation;
+find \( u \in \mathcal{H}_0^1(0, 1) \) such that
+\begin{equation}
+  \label{eq:weak}
+    \int_{0}^{1}u_x v_x \,\mathrm{d}x = \int_{0}^{1}f v \,\mathrm{d}x
+\end{equation}
+for all \( v \in \mathcal{H}^1_0 (0,1)\).
+Restricting to the second degree Lagrange finite element space
+results in the linear system
+\begin{equation}
+    Au = F
+\end{equation}
+where \( A \) is the stiffness matrix,
+and \( F \) is the load vector.
+
+\subsection{Second degree Lagrange finite element space}\label{sec:sec}
+
 Let \( \hat{K} = [0, 1] \) serve as the reference element.
-The Lagrange interpolant polynomials (shape functions)
-on the nodes \( (0, 1/2, 1) \) is
-then
+The Lagrange interpolating polynomials (shape functions)
+on the nodes \( (0, 1/2, 1) \) are
 \begin{align}
   \Psi_0(x) &= 2x^2 - 3x + 1\\
   \Psi_1(x) &= -4x^2 + 2x\\
@@ -30,19 +49,18 @@ In the following we use \( k \) to indicate the index
 of a segment and \( \alpha \in \{  0, 1, 2  \} \) to indicate
 the node on the segment. These indices are related by the
 local to global map \( \theta \):
-
 \begin{equation}
+  \label{eq:loc2glob}
   i = \theta(k, \alpha) := 2k + \alpha    
 \end{equation}
 
 TODO: A figure here perhaps?
 
-Define the following maps:
+The following bijection maps the reference element onto
+the \( k \)-th physical element.
 \begin{align}
   \Phi_k : \hat{K} &\longrightarrow  K \\
-  \xi & \longmapsto \xi s_{k+1} + (1-\xi) s_{k} \\
-  \Phi_k^{-1} : K &\longrightarrow  \hat{K} \\
-  x & \longmapsto \frac{x - s_k}{s_{k+1} - s_k}
+  \xi & \longmapsto \xi s_{k+1} + (1-\xi) s_{k}
 \end{align}
 
 The \( i \)'th basis function is denoted by \( \varphi_i \)
@@ -51,24 +69,50 @@ and is defined as
   \varphi_i(x) = \varphi_{\theta(k, \alpha)} := \Psi_{\alpha}({{\Phi_k}^{-1}(x) })
 \end{equation}
 
-\subsection{Setting up the weak form}
-
-TODO: her kan me sikkert anta at lesaren veit korleis det blir gjort
-og berre presentere resultater.
-
-\subsection{Stiffness matrix and Load vector}
-
-TODO: samme her kanskje? kor mykje skal med?
+\subsection{Constructing the stiffness matrix and the load vector}
 
 The elemental stiffness matrix and load vector has entries
 
 \begin{align}
-  [A^{K_k}]_{ij} &= \frac{1}{h_k} \int_{0}^{1} \Psi_i'(\xi)\Psi_j'(\xi) \,\mathrm{d}\xi \\
-  [F^{K_k}]_j &= h_k \int_{0}^{1} f\left(\Phi_k\left(\xi\right)\right) \Psi_j\left(\xi\right) \,\mathrm{d}\xi
+  [A^{K_k}]_{ij}
+    &=  \int_{s_k}^{s_{k+1}} \varphi_i'(x) \varphi_j'(x) \,\mathrm{d}x\\
+  [F^{K_k}]_i
+    &= \int_{s_k}^{s_{k+1}} f\left(x\right) \varphi_i\left(x\right) \,\mathrm{d}x
 \end{align}
 
-The elemental stiffness matrix is
+A change of variables (let \( x = \Phi_k(\xi) \)) and using the chain rule yields
 
+\begin{align}
+  [A^{K_k}]_{ij}
+    &= \frac{1}{h_k} \int_{0}^{1} \Psi_i'(\xi)\Psi_j'(\xi) \,\mathrm{d}\xi \\
+  [F^{K_k}]_i
+    &= h_k \int_{0}^{1} f\left(\Phi_k\left(\xi\right)\right) \Psi_i\left(\xi\right) \,\mathrm{d}\xi
+\end{align}
+
+Assembly of the total matrix is just a matter of
+adding the elements to their respective sub matrix
+of the stiffness matrix. (See algorithm \ref{alg:assemble_stiffness_matrix}).
+The same procedure for the load vector.
+
+\begin{algorithm}
+\caption{Assemble stiffness matrix}\label{alg:assemble_stiffness_matrix}
+\begin{algorithmic}
+\Require $M \geq 1$
+
+\State $k \gets 1$
+
+\For{$k = 1, \dots, M$}
+\State $[A]_{i, j=\theta(k, 0), \dots, \theta(k, 2)}
+\gets [A]_{i, j=\theta(k, 0), \dots, \theta(k, 2)} + [A^{K_k}]$
+\Comment{add the \( k \)-th elemental matrix}
+\EndFor
+
+
+\end{algorithmic}
+\end{algorithm}
+
+\iffalse
+  The elemental stiffness matrix is
 \begin{equation}
   A^{K_k} = \frac{1}{3h_k}
   \begin{bmatrix}
@@ -77,20 +121,37 @@ The elemental stiffness matrix is
   1 & -8 & 7\\
   \end{bmatrix}
 \end{equation}
+\fi
 
 \subsection{Test problem}
 
-We use the test solution \( u(x) = x(x-1)\sin(3\pi x) \).
+We use the test solution \( u(x) = x(x-1)\sin(3\pi x) \)
+with dirichlet boundary conditions \( u(0) = u(1) = 0 \)
+(see figure \ref{fig:test_eq1}).
+To test the implementation for inhomogeneous dirichlet boundary conditions
+we use the test solution \( u(x) = x \cos(3\pi x) \), \( u(0) = 0, u(1) = -1 \)
+(see figure \ref{fig:test_eq2}).
 
-\begin{equation}
-  \text{TODO}
-\end{equation}
-
-\begin{figure}[!h]
+\begin{figure}
   \centering
-  \includegraphics[width=0.75\textwidth]{Images/plots/task1_test_sol.pdf}
-  \caption{TODO}
-  \label{fig:test_eq}
+  \includegraphics[width=\textwidth]{Images/plots/task1_test_sol1.pdf}
+  \caption{The blue graphs shows the exact solution.
+  The red graphs are the numerical solution for two
+different partitions of the domain.
+The approximated solution \( u_h \) is sampled at \( 100 \)
+equidistant points.}
+  \label{fig:test_eq1}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{Images/plots/task1_test_sol2.pdf}
+  \caption{The blue graphs shows the exact solution.
+  The red graphs are the numerical solution for two
+different partitions of the domain.
+The approximated solution \( u_h \) is sampled at \( 100 \)
+equidistant points.}
+  \label{fig:test_eq2}
 \end{figure}
 
 \subsection{Convergence analysis}
@@ -101,11 +162,49 @@ TODO: teoretisk utledning
 
 \subsubsection{Numerical Verification}
 
+TODO: Here is the derivation of the errors I have implemented.
+The procedure is to write the integral as a sum over the elements
+and use a change of variables similar to the stiffness matrix.
 
-\begin{figure}[!h]
+\begin{align}
+  \lVert u - u_h \rVert_{\mathcal{L}^2(\Omega)}^2 
+    &= \int_{\Omega}(u(x) - u_h(x))^2 \,\mathrm{d}x \\
+    &= \sum_{k=1}^{M} h_k \int_{0}^{1}
+    \left(
+    u(\Phi_k(\xi)) 
+      - \sum_{\alpha=0}^{2} u_{\theta(k, \alpha)} \Psi_{\theta(k, \alpha)}(\xi)
+    \right)^2 \,\mathrm{d}x
+\end{align}
+
+\begin{align}
+  \lvert u - u_h \rvert_{\mathcal{H}^1(\Omega)}^2 
+    &= \int_{\Omega}(u'(x) - u_h'(x))^2 \,\mathrm{d}x \\
+    &= \sum_{k=1}^{M} h_k \int_{0}^{1}
+    \left(
+    u'(\Phi_k(\xi)) 
+      - \frac{1}{h_k} \sum_{\alpha=0}^{2} u_{\theta(k, \alpha)} \Psi_{\theta(k, \alpha)}'(\xi)
+    \right)^2 \,\mathrm{d}x
+\end{align}
+
+The integrals are calculated by
+numerical integration (scipy.integrate.quad).
+
+
+\begin{figure}
   \centering
   \includegraphics[width=0.75\textwidth]{Images/plots/task1_conv_plot.pdf}
-  \caption{TODO}
+  \caption{Convergence plot for the test solution
+  \( u(x) = x(x-1)\sin(3\pi x) \) in both
+  \( \mathcal{L}^2 \) and \( \mathcal{H}^1 \) norm.
+\( h \) is the element size for a equidistant partition of \( (0, 1) \).}
   \label{fig:conv_plot}
 \end{figure}
+
+\subsection{Generalisation}
+
+We have used the second order Lagrange finite elements
+throughout this project. The source code is written
+such that any degree \( d \) of Lagrange basis functions can be used.
+The process here is effectively to replace every 
+\( 2 \) in section \ref{sec:sec} with \( d \).
 
