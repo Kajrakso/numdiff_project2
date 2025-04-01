@@ -136,38 +136,41 @@ def test_solution(filename="task1_test_sol.pdf"):
     deg = 2
 
     # The number of elements
-    M = 5
+    M = (4, 6)
 
     # start and end point.
     xi, xf = 0, 1
-
-    # A uniform grid
-    partition = np.linspace(xi, xf, M + 1)
-
-    # A non-uniform grid
-    # partition = np.sqrt(partition)
 
     # Construct test equation for the Poisson equation: -Δu = f
     u_str = "x*(x-1)*sin(3*pi*x)"
     u, _, _, _, f, f_sy = manufacture_poisson_functions(u_str)
 
-    u_h = FEM_poisson.solve_Poisson_dirichlet(
-        f, a=u(xi), b=u(xf), partition=partition, deg=deg
-    )
 
-    fig, ax = plt.subplots()
-    ax.plot(
-        np.linspace(xi, xf, 100),
-        u(np.linspace(xi, xf, 100)),
-        label="u(x)",
-    )
-    plotting_tools.plot_solution(ax, partition, u_h, label="u_h(x)", K=1000, deg=deg)
-    ax.set(
-        title=r"$-\Delta u = f, u(x) = " + f"{u_str}" + "$",
-        xlabel="$x$",
-        ylabel="$u(x), u_h(x)$",
-    )
-    ax.legend()
+    fig, axs = plt.subplots(1, len(M), figsize=(10, 6))
+    for i, _M in enumerate(M):
+        # A uniform grid
+        partition = np.linspace(xi, xf, _M + 1)
+
+        # A non-uniform grid
+        # partition = np.sqrt(partition)
+
+        u_h = FEM_poisson.solve_Poisson_dirichlet(
+            f, a=u(xi), b=u(xf), partition=partition, deg=deg
+        )
+
+        axs[i].plot(
+            np.linspace(xi, xf, 100),
+            u(np.linspace(xi, xf, 100)),
+            label="u(x)",
+        )
+        plotting_tools.plot_solution(axs[i], partition, u_h, label="$u_h(x)$", K=100, deg=deg)
+        axs[i].set(
+            title=f"$M = {_M}$ segments",
+            xlabel="$x$",
+            ylabel="$u(x), u_h(x)$",
+        )
+        axs[i].legend()
+    fig.suptitle(r"$-\Delta u = f, u(x) = " + f"{u_str}" + "$")
     fig.savefig(filename)
 
 
