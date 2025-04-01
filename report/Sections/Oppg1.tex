@@ -2,9 +2,9 @@
 
 TODO: consider text size of the plots!
 
-The Poisson equation with dirichlet boundary conditions is
+The Poisson equation with homogenous dirichlet boundary conditions is
 \begin{equation}
-    - \Delta u = f, u(0) = a, u(1) = b
+    - \Delta u = f, u(0) = u(1) = 0
 \end{equation}
 
 We assume that the reader is familiar with the
@@ -18,10 +18,13 @@ for all \( v \in \mathcal{H}^1_0 (0,1)\).
 Restricting to the second degree Lagrange finite element space
 results in the linear system
 \begin{equation}
-    Au = F
+    Au_h = F
 \end{equation}
 where \( A \) is the stiffness matrix,
 and \( F \) is the load vector.
+Since \( u(0) = u(1) = 0 \) we set
+the first and last entry of \( u_h \)
+to \( 0 \).
 
 \subsection{Second degree Lagrange finite element space}\label{sec:sec}
 
@@ -121,6 +124,19 @@ The same procedure for the load vector.
   1 & -8 & 7\\
   \end{bmatrix}
 \end{equation}
+\fi
+
+\iffalse
+\subsection{Boundary conditions}
+
+The main objective have been to solve the Poisson equation
+with homogenous boundary conditions. 
+Recall that the inhomogenous case
+has to be handeled with a bit of care.
+Suppose \( u(0) = a, u(1) = b \).
+The idea is to introduce a lift function \( R(x) = (1-x)a + xb \)
+and solve for the reduced function \( \hat{u} = u - R(x) \).
+The resulting system is the same as 
 \fi
 
 \subsection{Test problem}
