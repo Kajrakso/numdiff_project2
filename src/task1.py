@@ -61,8 +61,8 @@ def convergence_plot(Ms, L2errs, H1errs, filename="conv_plot.pdf"):
     pH1 = np.polyfit(np.log(1 / Ms), np.log(H1errs), deg=1)
 
     fig, ax = plt.subplots()
-    ax.loglog(1 / Ms, L2errs, "o-", label=r"$\mathcal{L}^2((0,1)): p\approx" + f"{pL2[0]:.3f}$")
     ax.loglog(1 / Ms, H1errs, "o-", label=r"$\mathcal{H}^1((0,1)): p\approx" + f"{pH1[0]:.3f}$")
+    ax.loglog(1 / Ms, L2errs, "o-", label=r"$\mathcal{L}^2((0,1)): p\approx" + f"{pL2[0]:.3f}$")
     # ax.loglog(1 / Ms, (1 / Ms), label="p=1")
     # ax.loglog(1 / Ms, (1 / Ms) ** 2, label="p=2")
     # ax.loglog(1 / Ms, (1 / Ms) ** 3, label="p=3")
