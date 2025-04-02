@@ -1,6 +1,7 @@
 \section{The Poisson Equation}
 
 TODO: consider text size of the plots!
+TODO: consider numbering of equations
 
 The Poisson equation with homogenous dirichlet boundary conditions is
 \begin{equation}
@@ -56,8 +57,6 @@ local to global map \( \theta \):
   \label{eq:loc2glob}
   i = \theta(k, \alpha) := 2k + \alpha    
 \end{equation}
-
-TODO: A figure here perhaps?
 
 The following bijection maps the reference element onto
 the \( k \)-th physical element.
@@ -176,9 +175,6 @@ equidistant points.}
 
 \subsection{Convergence analysis}
 
-
-TODO: teoretisk utledning
-
 \begin{theorem}
     Let $u \in H_0^3(\Omega)$ and $u_h \in X_h^2 \cap H_0^1$ be the solutions of the infinite and finite dimensional
     variational problem respectively, where $h$ is the maximum element size in $X_h^2$. Assume further that $F$ in the variational problem is bounded,
@@ -189,10 +185,10 @@ TODO: teoretisk utledning
     for some constant $C > 0$.
 \end{theorem}
 \begin{proof}
-    We first note that $a(u, v)$ is both bounded and coercive. Combined with the assumption that $F$ is bounded, we then get from the Lax-Milgram \ref{}
-    theorem that the variational problem admits a unique solution.
+  We first note that $a(u, v)$ is both bounded and coercive. Combined with the assumption that $F$ is bounded, we then get from the Lax-Milgram theorem (\cite{CC}, page 15)
+    that the variational problem admits a unique solution.
     
-    From Cea's lemma \ref{} we then obtain
+    From Cea's lemma (\cite{CC}, page 18) we then obtain
     \begin{equation}
         ||u - u_h||_{H^1} \leq \frac{M}{\alpha}||u - v_h||_{H^1} = \frac{M}{\alpha}(||u - v_h||_{L^2} + |u - v_h|_{H^1}) \quad \forall v_h \in X_h^2 \cap H_0^1.
     \end{equation}
@@ -203,7 +199,7 @@ TODO: teoretisk utledning
     \begin{equation}
         ||u - u_h||_{H^1} \leq \frac{M}{\alpha}(||u - u_h^2||_{L^2} + |u - u_h^2|_{H^1}),
     \end{equation}
-    which combined with lemma 4.4 \ref{} gives us
+    which combined with lemma 4.4 (\cite{CC}, page 19) gives us
     \begin{equation}
         \begin{aligned}
             \frac{M}{\alpha}||u - v_h||_{H^1} &\leq \frac{M}{\alpha}(C_{2}h^3|u|_{H^3} + C_{1}h^2|u|_{H^3}) \\
@@ -213,12 +209,12 @@ TODO: teoretisk utledning
     \end{equation}
 \end{proof}
 
-
 \subsubsection{Numerical Verification}
 
-TODO: Here is the derivation of the errors I have implemented.
-The procedure is to write the integral as a sum over the elements
+To numerically calculate the \( \mathcal{L}^2 \) and \( \mathcal{H}^1 \) norm
+we write the integral as a sum over the elements
 and use a change of variables similar to the stiffness matrix.
+The inner integrals have to be calculated numerically.
 
 \begin{align}
   \lVert u - u_h \rVert_{\mathcal{L}^2(\Omega)}^2 
@@ -240,9 +236,9 @@ and use a change of variables similar to the stiffness matrix.
     \right)^2 \,\mathrm{d}x
 \end{align}
 
-The integrals are calculated by
-numerical integration (scipy.integrate.quad).
-
+We observe in figure \ref{fig:conv_plot} that the convergence orders
+match the theoretical results. The equation used is the same as our
+first test equation (see figure \ref{fig:test_eq1}).
 
 \begin{figure}
   \centering
