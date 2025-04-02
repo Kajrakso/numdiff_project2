@@ -179,10 +179,40 @@ equidistant points.}
 
 TODO: teoretisk utledning
 
-From Cea's lemma we obtain
-\begin{equation}
-    ||u - u_h|| \leq \frac{M}{\alpha}||u - v_h||
-\end{equation}
+\begin{theorem}
+    Let $u \in H_0^3(\Omega)$ and $u_h \in X_h^2 \cap H_0^1$ be the solutions of the infinite and finite dimensional
+    variational problem respectively, where $h$ is the maximum element size in $X_h^2$. Assume further that $F$ in the variational problem is bounded,
+    and that $u$ has a second order polynomial interpolant $u_h^2$ on $\Omega$. Then
+    \begin{equation}
+        ||u - u_h||_{H^1} \leq Ch^2
+    \end{equation}
+    for some constant $C > 0$.
+\end{theorem}
+\begin{proof}
+    We first note that $a(u, v)$ is both bounded and coercive. Combined with the assumption that $F$ is bounded, we then get from the Lax-Milgram \ref{}
+    theorem that the variational problem admits a unique solution.
+    
+    From Cea's lemma \ref{} we then obtain
+    \begin{equation}
+        ||u - u_h||_{H^1} \leq \frac{M}{\alpha}||u - v_h||_{H^1} = \frac{M}{\alpha}(||u - v_h||_{L^2} + |u - v_h|_{H^1}) \quad \forall v_h \in X_h^2 \cap H_0^1.
+    \end{equation}
+    Since $u(0) = u(1) = 0$, and $\{0, 1\}$ are nodes of the interpolating polynomial, we obtain that $u_h^2(0) = u_h^2(1) = 0$ as well.
+    In particular we get that $u_h^2 \in X_h^2 \cap H_0^1$.
+    
+    Choosing $v_h = u_h^2$ in Cea's lemma results in 
+    \begin{equation}
+        ||u - u_h||_{H^1} \leq \frac{M}{\alpha}(||u - u_h^2||_{L^2} + |u - u_h^2|_{H^1}),
+    \end{equation}
+    which combined with lemma 4.4 \ref{} gives us
+    \begin{equation}
+        \begin{aligned}
+            \frac{M}{\alpha}||u - v_h||_{H^1} &\leq \frac{M}{\alpha}(C_{2}h^3|u|_{H^3} + C_{1}h^2|u|_{H^3}) \\
+            &= h^2\frac{M}{\alpha}(C_{2}h|u|_{H^3} + C_{1}|u|_{H^3}) \\
+            &= Ch^2
+        \end{aligned}
+    \end{equation}
+\end{proof}
+
 
 \subsubsection{Numerical Verification}
 
