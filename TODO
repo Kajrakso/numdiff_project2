@@ -1,0 +1,33 @@
+Thorbjørn:
+    theoretisk konvergens: bevis
+    hvor får du a(u, v) fra? kanskje skrive a(u, v) = int(...)
+    hva er alpha, M? kanskje skrive at dette er bound og coersive?
+
+    Algorithm 1: define A
+
+
+Oskar:
+    under 25:
+        skriv om til for alle v_h \in V.:hk
+
+    34:
+        rewrite to grad ()  = 0 directly.
+
+    ikke nevne Scipy i siste del av part 2
+
+
+    plotte med non-equi elements
+
+    lign. 2:
+    bruk a(u, v)
+
+    theorem 1.1 definer M , alpha
+
+    last opp ny conv plot
+
+
+Vemund:
+    F is invertible and positive fdefinite
+
+
+
