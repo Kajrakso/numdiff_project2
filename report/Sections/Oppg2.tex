@@ -42,7 +42,7 @@ Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i
      &- \int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right) \left(d_0 \varphi_0 + \sum_{i=0}^{2N} d_i \varphi_i + d_{2N} \varphi_{2N} \right)dx + 
      \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx \\    
      &= \frac{1}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i y_j \int_0^1 \varphi_i \varphi_j dx + \frac{1}{2}\sum_{i=0}^{2N}\sum_{j=0}^{2N} d_i d_j \int_0^1
-    - \sum_{i=1}^{2N-1} y_i \left( d_0 \varphi_0 + \sum_{i=0}^{2N} d_i \varphi_i + d_{2N}  \right)  
+    - \sum_{i=1}^{2N-1} y_i \left( d_0 + \sum_{j=0}^{2N} d_i  + d_{2N}  \right)  
 \end{align*}
 \begin{align*}
     G(\mathbf{y, u}) &= \frac{1}{2}\int_0^1\left( \sum_{i=1}^{2N-1}\left( y_i -d_i\right) \varphi_i \right)^2dx + \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx \\    
