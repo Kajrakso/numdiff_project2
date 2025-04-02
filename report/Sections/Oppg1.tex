@@ -96,6 +96,10 @@ Assembly of the total matrix is just a matter of
 adding the elements to their respective sub matrix
 of the stiffness matrix. (See algorithm \ref{alg:assemble_stiffness_matrix}).
 The same procedure for the load vector.
+Note that the elemental stiffness matrix
+can be computed exactly (either by hand or by a Gauss-Legendre quadrature rule of appropriate
+degree on the computer). The function \( f \) in the elemental load vectors
+forces these integrals to be computed numerically (Simpsons rule for instance).
 
 \begin{algorithm}
 \caption{Assemble stiffness matrix}\label{alg:assemble_stiffness_matrix}
