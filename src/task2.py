@@ -8,14 +8,15 @@ import plotting_tools
 
 
 def OCP(func_des: Callable, partition: np.ndarray, alpha: float, deg: int) -> np.ndarray:
-    inner_nodes = get_nodes(partition, deg=deg)[1:-1]
-    N = len(inner_nodes)
+    nodes = get_nodes(partition, deg=deg)
+    N = len(nodes) - 2                # remove boundary nodes
 
     B = assemble_stiffness_matrix(partition, deg=deg)[1:-1, 1:-1].tocsr()
-    F = assemble_mass_matrix(partition, deg=deg)[1:-1, 1:-1].tocsr()
+    F_hat = assemble_mass_matrix(partition, deg=deg)[1:-1, :]
+    F = F_hat[:, 1:-1].tocsr()
 
     A = sp.sparse.block_array([[F, alpha * B], [-B, F]])
-    b = np.concatenate([F @ func_des(inner_nodes), np.zeros(N)])
+    b = np.concatenate([F_hat @ func_des(nodes), np.zeros(N)])
 
     sol = sp.sparse.linalg.spsolve(A, b)
 
