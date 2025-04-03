@@ -41,27 +41,32 @@ where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, whi
     &= \mathbf{v}^T F \mathbf{u} , 
 \end{align*}
  where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$, $i,j = 1, \dots, 2N-1$.
-Since the constraint holds for all $v \in V_h$, we get that
+Hence \( \mathbf{v}^T B \mathbf{y} = \mathbf{v}^T F \mathbf{u}  \) and
+since the constraint holds for all $\mathbf{v} \in V_h$, we get that
 $$B\mathbf{y} = F \mathbf{u}.$$
 
 We find $G(\mathbf{y, u})$ by rewriting the objective function of (\ref{eq:OCP_FE}).
-Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$, where $\mathbf{d}$ are coefficients, giving the form
+Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$,
+where $\mathbf{d} = \begin{bmatrix} d_0 & \dots & d_{2N} \\ \end{bmatrix}^T$
+are the coefficients,
+giving the form
 \begin{align*}
     G(\mathbf{y, u}) &= \frac{1}{2}\langle y_h - \bar{y}_d, y_h - \bar{y}_d \rangle_{L^2{(\Omega)}} + \frac{\alpha}{2} \langle u_h, u_h \rangle_{L^2(\Omega)} \\
    &= \frac{1}{2}\langle y_h , y_h \rangle_{L^2{(\Omega)}} +  \frac{1}{2}\langle \bar{y}_d ,\bar{y}_d  \rangle_{L^2{(\Omega)}}
    - \langle y_h, \bar{y}_d \rangle_{L^2{(\Omega)}} + \frac{\alpha}{2} \langle u_h, u_h \rangle_{L^2(\Omega)} \\
      &= \frac{1}{2}\int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right)^2dx  + \frac{1}{2}\int_0^1\left( \sum_{i=0}^{2N}d_i \varphi_i \right)^2dx \\
-     &- \int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right) \left(d_0 \varphi_0 + \sum_{i=1}^{2N-1} d_i \varphi_i + d_{2N} \varphi_{2N} \right)dx + 
+     &\quad- \int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right) \left(\sum_{i=0}^{2N} d_i \varphi_i \right)dx + 
      \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx \\    
      &= \frac{1}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i y_j \int_0^1 \varphi_i \varphi_j dx + \frac{1}{2}\sum_{i=0}^{2N}\sum_{j=0}^{2N} d_i d_j \int_0^1 \varphi_i \varphi_j dx \\
-    &- \sum_{i=1}^{2N-1} \sum_{j=0}^{2N} y_i d_i \int_0^1 \varphi_i \varphi_j dx +  \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j \int_0^1\varphi_i \varphi_j dx.
+    &\quad- \sum_{i=1}^{2N-1} \sum_{j=0}^{2N} y_i d_i \int_0^1 \varphi_i \varphi_j dx +  \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j \int_0^1\varphi_i \varphi_j dx.
 \end{align*}
 We can rewrite this in the form
 $$
 G(\mathbf{y, u}) = \frac{1}{2}\mathbf{y}^T F \mathbf{y} + \frac{1}{2}\mathbf{d}^T\Tilde{F} \mathbf{d} - \mathbf{y}^T\hat{F}\mathbf{d} + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u},
 $$
-where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$ has the same elements as $F$, but $i, j = 0, \dots, 2N$, 
-and $\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
+where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$
+is $F$, but extended to include the boundaries.
+$\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
 
 To solve equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
 \begin{align}
