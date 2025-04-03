@@ -61,16 +61,13 @@ def convergence_plot(Ms, L2errs, H1errs, filename="conv_plot.pdf"):
     pH1 = np.polyfit(np.log(1 / Ms), np.log(H1errs), deg=1)
 
     fig, ax = plt.subplots()
-    ax.loglog(1 / Ms, H1errs, "o-", label=r"$\mathcal{H}^1((0,1)): p\approx" + f"{pH1[0]:.3f}$")
-    ax.loglog(1 / Ms, L2errs, "o-", label=r"$\mathcal{L}^2((0,1)): p\approx" + f"{pL2[0]:.3f}$")
-    # ax.loglog(1 / Ms, (1 / Ms), label="p=1")
-    # ax.loglog(1 / Ms, (1 / Ms) ** 2, label="p=2")
-    # ax.loglog(1 / Ms, (1 / Ms) ** 3, label="p=3")
+    ax.loglog(1 / Ms, H1errs, "o-", label=r"$Q=H^1((0,1)): p\approx" + f"{pH1[0]:.3f}$")
+    ax.loglog(1 / Ms, L2errs, "o-", label=r"$Q=\mathcal{L}^2((0,1)): p\approx" + f"{pL2[0]:.3f}$")
     ax.legend()
     ax.set(
         title="Numerical verification of convergence order",
         xlabel="h",
-        ylabel=r"$||u-u_h||$",
+        ylabel=r"$||u-u_h||_{Q}$",
     )
     fig.savefig(filename)
 
@@ -131,18 +128,18 @@ def convergence_analysis(u, du, f, Ms, deg):
     return Ms, L2errs, H1errs
 
 
-def test_solution(filename="task1_test_sol.pdf"):
+def test_solution(filename="task1_test_sol_non_unif.pdf"):
     # degree of the basis polynomials
     deg = 2
 
     # The number of elements
-    M = (4, 6)
+    M = (6, 8)
 
     # start and end point.
     xi, xf = 0, 1
 
     # Construct test equation for the Poisson equation: -Δu = f
-    u_str = "x*(x-1)*sin(3*pi*x)"
+    u_str = "x*cos(3*pi*x)"
     u, _, _, _, f, f_sy = manufacture_poisson_functions(u_str)
 
 
@@ -152,7 +149,7 @@ def test_solution(filename="task1_test_sol.pdf"):
         partition = np.linspace(xi, xf, _M + 1)
 
         # A non-uniform grid
-        # partition = np.sqrt(partition)
+        partition = np.sqrt(partition)
 
         u_h = FEM_poisson.solve_Poisson_dirichlet(
             f, a=u(xi), b=u(xf), partition=partition, deg=deg
@@ -177,6 +174,7 @@ def test_solution(filename="task1_test_sol.pdf"):
 def main():
     test_solution()
 
+    return
     u_str = "x*(x-1)*sin(3*pi*x)"  # define the test solution
     u, _, du, _, f, _ = manufacture_poisson_functions(u_str)
 
