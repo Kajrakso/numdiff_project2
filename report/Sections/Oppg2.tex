@@ -41,27 +41,32 @@ where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, whi
     &= \mathbf{v}^T F \mathbf{u} , 
 \end{align*}
  where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$, $i,j = 1, \dots, 2N-1$.
-Since the constraint holds for all $v \in V_h$, we get that
+Hence \( \mathbf{v}^T B \mathbf{y} = \mathbf{v}^T F \mathbf{u}  \) and
+since the constraint holds for all $\mathbf{v} \in V_h$, we get that
 $$B\mathbf{y} = F \mathbf{u}.$$
 
 We find $G(\mathbf{y, u})$ by rewriting the objective function of (\ref{eq:OCP_FE}).
-Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$, where $\mathbf{d}$ are coefficients, giving the form
+Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$,
+where $\mathbf{d} = \begin{bmatrix} d_0 & \dots & d_{2N} \\ \end{bmatrix}^T$
+are the coefficients,
+giving the form
 \begin{align*}
     G(\mathbf{y, u}) &= \frac{1}{2}\langle y_h - \bar{y}_d, y_h - \bar{y}_d \rangle_{L^2{(\Omega)}} + \frac{\alpha}{2} \langle u_h, u_h \rangle_{L^2(\Omega)} \\
    &= \frac{1}{2}\langle y_h , y_h \rangle_{L^2{(\Omega)}} +  \frac{1}{2}\langle \bar{y}_d ,\bar{y}_d  \rangle_{L^2{(\Omega)}}
    - \langle y_h, \bar{y}_d \rangle_{L^2{(\Omega)}} + \frac{\alpha}{2} \langle u_h, u_h \rangle_{L^2(\Omega)} \\
      &= \frac{1}{2}\int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right)^2dx  + \frac{1}{2}\int_0^1\left( \sum_{i=0}^{2N}d_i \varphi_i \right)^2dx \\
-     &- \int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right) \left(d_0 \varphi_0 + \sum_{i=1}^{2N-1} d_i \varphi_i + d_{2N} \varphi_{2N} \right)dx + 
+     &\quad- \int_0^1\left( \sum_{i=1}^{2N-1}y_i \varphi_i \right) \left(\sum_{i=0}^{2N} d_i \varphi_i \right)dx + 
      \frac{\alpha}{2}\int_0^1\left(\sum_{i=1}^{2N-1} u_i \varphi_i  \right)^2dx \\    
      &= \frac{1}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i y_j \int_0^1 \varphi_i \varphi_j dx + \frac{1}{2}\sum_{i=0}^{2N}\sum_{j=0}^{2N} d_i d_j \int_0^1 \varphi_i \varphi_j dx \\
-    &- \sum_{i=1}^{2N-1} \sum_{j=0}^{2N} y_i d_i \int_0^1 \varphi_i \varphi_j dx +  \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j \int_0^1\varphi_i \varphi_j dx.
+    &\quad- \sum_{i=1}^{2N-1} \sum_{j=0}^{2N} y_i d_i \int_0^1 \varphi_i \varphi_j dx +  \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j \int_0^1\varphi_i \varphi_j dx.
 \end{align*}
 We can rewrite this in the form
 $$
 G(\mathbf{y, u}) = \frac{1}{2}\mathbf{y}^T F \mathbf{y} + \frac{1}{2}\mathbf{d}^T\Tilde{F} \mathbf{d} - \mathbf{y}^T\hat{F}\mathbf{d} + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u},
 $$
-where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$ has the same elements as $F$, but $i, j = 0, \dots, 2N$, 
-and $\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
+where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$
+is $F$, but extended to include the boundaries.
+$\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
 
 To solve equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
 \begin{align}
@@ -145,60 +150,98 @@ $$
     \mathbf{0}
 \end{bmatrix}.
 $$
-This system has sparse sub-blocks, which can solved
-efficiently by a sparse solver.
 
-TODO: mer om hvordan den spesifikke implementasjonen??? Skal vi ha med explisitte uttrykk for $\mathbf{y}$ og $\mathbf{u}$??
+This system has sparse sub-blocks, which is solved
+efficiently by a sparse solver.
 
 \subsection{Example temperature profiles}
 We wish to test our implementation for some different desired temperature profiles,
 \begin{align}
-    \label{eq:desired_profiles}
-    y_d &= \frac{1}{2}x(1-x), \\
-    y_d &= 1, \\
+    y_d &= \frac{1}{2}x(1-x), \label{eq:des_1} \\
+    y_d &= 1, \label{eq:des_2}\\
     y_d &= \begin{cases}
         1 \quad \text{for} \quad x \in \left[ \frac{1}{4}, \frac{3}{4}\right] \\
         0 \quad \text{else}.
-    \end{cases}
+    \end{cases} \label{eq:des_3}
 \end{align}
 
-TODO: comment on \( \alpha \) and the three different desired temp. profiles.
-We see that for a high cost, figure (\ref{fig:0}), the discrepancy between the optimal state and the desired profile is large, while the optimal state is ???.
-I.e. the optimal control becomes minimized at the expense of the discrepancy.
-In contrast, for low cost, figure (\ref{fig:2}), the discrepancy between the optimal state and the desired profile is almost non-existent and the optimal state is extreme??.
-For a typical cost figure (\ref{eq:1}), we see that there is some discrepancy from the desired profile, but the optimal control is still smooth ???.
-This is what we would expect from the original problem. For typical costs both the discrepancy and the heating/cooling are somewhat minimized, while either one of them are minimized for low/high costs.
+We see that when the cost parameter is large (\( \alpha = 10^{-1} \), figure \ref{fig:0})
+the discrepancy between the optimal state and the
+desired profile is quite large.
+However, the heating is kept relatively small
+(especially compared with figures \ref{fig:1} and \ref{fig:2}).
+That is, the optimal control becomes small at the
+expense of the discrepancy.
 
-Since our optimal state and optimal control are in $H_0^1$, but our desired profile not guaranteed to be, we might get interesting results if we choose a desired profile not in $H_0^1$.
-This is the case for both the second and third desired profiles in (\ref{eq:desired_profiles}).
-We see that for both high and normal costs, both the optimal control and state are smooth.
-In contrast, for low costs, figure (\ref{fig:2}), the optimal control is rather extreme at the boundaries and for discontinuities. This happens becasue????
-This is not the case for the first desired temperature profile, since it is an element of $H_0^1$.
+In contrast, for lower costs (\( \alpha = 10^{-8} \),
+figure \ref{fig:2}), the discrepancy between the optimal state
+and the desired profile is small. 
+Note that the distributed heat source reaches amplitudes in
+the interval \( (-1500,2000) \) for equations \eqref{eq:des_2} and \eqref{eq:des_3}.
 
-TODO: more plots?
+Using a typical cost parameter (\( \alpha = 10^{-3} \), figure \ref{fig:1}),
+we see that there is some discrepancy from the
+desired profile. The heating profile is reasonable.
 
+This is to be expected given the original problem.
+If heating is expensive, the temperature discrepancy is large.
+If heating is cheap, the temperature discrepancy is small.
 
-\begin{figure}[!h]
+We have assumed that the optimal state, \( y \), and optimal control, \( u \),
+are in $H_0^1$, whilst the desired profile, \( y_d \),
+are not restricted by \( H_0^1 \).
+We get interesting results if we use a desired profile not in $H_0^1$.
+
+This is the case for equations \eqref{eq:des_2} and \eqref{eq:des_3}.
+We see that for both high and typical costs,
+both the optimal control and state are smooth.
+
+In contrast, for low costs, the optimal control
+is rather extreme at the boundaries and at
+the discontinuities. TODO: Why?
+
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_0.pdf}
-  \caption{Plotting of an optimized control problem for different desired temperature profiles. The upper row contains plots of different desired temperature profiles and their corresponding optimal state.
-  The lower row contains plots of the optimal sate for the corresponding problem. The cost, $\alpha$, is here set to a low value.}
+  \caption{An optimized control problem for various
+    desired temperature profiles. The upper row plots the
+    desired temperature profiles and the corresponding 
+    optimal state. The lower row plots the
+    optimal state for the corresponding problem.
+    The cost parameter, $\alpha$, is set to high value.
+    To find the optimal state and the optimal control we 
+    have partitioned the interval into \( 20 \) elements.
+    A second degree Lagrange finite element space have been used.}
   \label{fig:0}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_1.pdf}
-  \caption{Plotting of an optimized control problem for different desired temperature profiles. The upper row contains plots of different desired temperature profiles and their corresponding optimal state.
-  The lower row contains plots of the optimal sate for the corresponding problem. The cost, $\alpha$, is here set to a standard value.}
+  \caption{An optimized control problem for various
+    desired temperature profiles. The upper row plots the
+    desired temperature profiles and the corresponding 
+    optimal state. The lower row plots the
+    optimal state for the corresponding problem.
+    The cost parameter, $\alpha$, is set to typical value.
+    To find the optimal state and the optimal control we 
+    have partitioned the interval into \( 20 \) elements.
+    A second degree Lagrange finite element space have been used.}
   \label{fig:1}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_2.pdf}
-  \caption{Plotting of an optimized control problem for different desired temperature profiles. The upper row contains plots of different desired temperature profiles and their corresponding optimal state.
-  The lower row contains plots of the optimal sate for the corresponding problem. The cost, $\alpha$, is here set to a high value.}
+  \caption{An optimized control problem for various
+    desired temperature profiles. The upper row plots the
+    desired temperature profiles and the corresponding 
+    optimal state. The lower row plots the
+    optimal state for the corresponding problem.
+    The cost parameter, $\alpha$, is set to low value.
+    To find the optimal state and the optimal control we 
+    have partitioned the interval into \( 20 \) elements.
+    A second degree Lagrange finite element space have been used.}
   \label{fig:2}
 \end{figure}
 
