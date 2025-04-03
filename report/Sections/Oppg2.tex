@@ -5,8 +5,8 @@ Our problem is then to minimize the discrepancy between the desired profile and 
 Our problem then becomes
 \begin{equation}
     \label{eq:OCP}
-    \min_{y, u} \frac{1}{2} \int_0^1 \lvert y - y_d \rvert^2 dx + \frac{\alpha}{2}\int_0^1u^2 dxn
-    \quad s.t. \quad \begin{cases}
+    \min_{y, u} \frac{1}{2} \int_0^1 \lvert y - y_d \rvert^2 dx + \frac{\alpha}{2}\int_0^1u^2 dx
+    \quad \text{s.t.} \quad \begin{cases}
        -\Delta y = u \\
        y(0) = y(1) = 0
     \end{cases} 
@@ -20,13 +20,15 @@ We approximate this as
 \end{equation}
 where $\bar{y}_d$ is the interpolation of $y_d$ onto $X_h^2$, $V_h = X_h^2 \cap H_0^1 (\Omega)$ and $a(u, v) = \int_0^1 u_x v_x dx$.
 The optimal control is then $u_h$, and the optimal state is $y_h$.
-\subsection{TODO: utledning}
+
+
+\subsection{Solution}
 To find a solution we interpret this as a minimization problem for the unknown coefficients $\mathbf{u} = \{u_1, \dots, u_{2N-1} \}$, $\mathbf{y} = \{y_1, \dots, y_{2N-1} \}$ as
 \begin{equation}
     \label{eq:OCP_coeff}
     \min_{\mathbf{y,u} \in \mathds{R}^{2N-1}} G(\mathbf{y, u}) \quad \text{s.t.} \quad B\mathbf{y} = F\mathbf{u}.
 \end{equation}
-For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}). If the constraint holds for some $\varphi_i$ it holds for all $v_h\in V_H$ which gives us the forms,
+For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}). If the constraint holds for all $\varphi_i$ it holds for all $v_h\in V_H$ which gives us the forms,
 $$a(y_h, \varphi_j) = \int_0^1 \left( \sum_{i=1}^{2N-1} y_i \varphi_i' \varphi_j' \right)dx =\sum_{i=1}^{2N-1} y_i\int_0^1 \left( \varphi_i' \varphi_j' \right)dx,$$
 which can be written for all $\varphi$'s as $B\mathbf{y}$, where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, and  
 $$\langle u_h, \varphi_j \rangle_{L^2(\Omega)} = \int_0^1 \sum_{i=1}^{2N-1} u_i \varphi_i \varphi_j dx =\sum_{i=1}^{2N-1} u_i \int_0^1  \varphi_i \varphi_j dx,$$
@@ -52,7 +54,7 @@ $$
 where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$ has the same elements as $F$, but $i, j = 0, \dots, 2N$, 
 and $\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
 
-To find a solution to equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
+To solve equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
 \begin{align}
     \label{eq:OCP_lagrangian}
     \mathcal{L}(\mathbf{y, u, \lambda}) &= G(\mathbf{y, u}) - \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right) \\
