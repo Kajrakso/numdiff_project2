@@ -87,14 +87,14 @@ yields the system
 \end{align}
 
 \begin{lemma}
-    $F$ is invertible.    
+    $F$ is positive definite.    
 \end{lemma}
 \begin{proof}
     \label{lemma:F_invertible}
     The basis functions $\varphi_i$ are linearly independent, since they are Lagrange nodal polynomials and our nodes are unique.
     Since $F_{i,j} = \int_0^1 \varphi_i \varphi_j dx = \langle \varphi_i, \varphi_j \rangle_{L^2(\Omega)}$,
     $F$ is a Gram-matrix corresponding to the vector space of our basis functions.
-    Combining these results gives us that $F$ is positive definite and therefore invertible.
+    Combining these results gives us that $F$ is positive definite.
 \end{proof}
 
 \begin{lemma}
@@ -146,7 +146,7 @@ $$
 \end{bmatrix}.
 $$
 This system has sparse sub-blocks, which can solved
-effieciently by sparse solver.
+efficiently by a sparse solver.
 
 TODO: mer om hvordan den spesifikke implementasjonen??? Skal vi ha med explisitte uttrykk for $\mathbf{y}$ og $\mathbf{u}$??
 
