@@ -28,12 +28,21 @@ To find a solution we interpret this as a minimization problem for the unknown c
     \label{eq:OCP_coeff}
     \min_{\mathbf{y,u} \in \mathds{R}^{2N-1}} G(\mathbf{y, u}) \quad \text{s.t.} \quad B\mathbf{y} = F\mathbf{u}.
 \end{equation}
-For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}). If the constraint holds for all $\varphi_i$ it holds for all $v_h\in V_H$ which gives us the forms,
-$$a(y_h, \varphi_j) = \int_0^1 \left( \sum_{i=1}^{2N-1} y_i \varphi_i' \varphi_j' \right)dx =\sum_{i=1}^{2N-1} y_i\int_0^1 \left( \varphi_i' \varphi_j' \right)dx,$$
-which can be written for all $\varphi$'s as $B\mathbf{y}$, where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, and  
-$$\langle u_h, \varphi_j \rangle_{L^2(\Omega)} = \int_0^1 \sum_{i=1}^{2N-1} u_i \varphi_i \varphi_j dx =\sum_{i=1}^{2N-1} u_i \int_0^1  \varphi_i \varphi_j dx,$$
-which can be written for all $\varphi$'s as $F\mathbf{u}$, where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$, $i,j = 1, \dots, 2N-1$.
-One can see that $B$ is the same as the stiffness matrix.
+For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}), 
+\begin{align*}
+    a(y_h, v) &= \int_0^1 \left( \sum_{i=1}^{2N-1} y_i \varphi_i'  \right) \left( \sum_{j=1}^{2N-1} v_j \varphi_j'\right)dx  \\
+    & = \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i v_j\int_0^1  \varphi_i' \varphi_j' dx \\
+    &= \mathbf{v}^T B \mathbf{y} ,
+\end{align*}
+where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, which is the stiffness matrix, and  
+\begin{align*}
+    \langle u_h, v \rangle_{L^2(\Omega)} &= \int_0^1 \left( \sum_{i=1}^{2N-1} u_i \varphi_i \right) \left( \sum_{j=1}^{2N-1} v_j \varphi_j \right) dx \\
+    &= \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i v_j\int_0^1  \varphi_i \varphi_j dx \\
+    &= \mathbf{v}^T F \mathbf{u} , 
+\end{align*}
+ where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$, $i,j = 1, \dots, 2N-1$.
+Since the constraint holds for all $v \in V_h$, we get that
+$$B\mathbf{y} = F \mathbf{u}.$$
 
 We find $G(\mathbf{y, u})$ by rewriting the objective function of (\ref{eq:OCP_FE}).
 Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$, where $\mathbf{d}$ are coefficients, giving the form

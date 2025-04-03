@@ -100,10 +100,9 @@ forces these integrals to be computed numerically (Simpsons rule for instance).
 \begin{algorithm}
 \caption{Assemble stiffness matrix}\label{alg:assemble_stiffness_matrix}
 \begin{algorithmic}
-\Require $M \geq 1$, $A \in \mathbb{R}^{(2M+1) \times (2M+1)}$
-TODO: Dimensions on A
-\State $k \gets 1$
-\For{$k = 1, \dots, M$}
+\Require $M \geq 1$
+\State $A \gets [0]_{(2M+1) \times (2M+1)}$
+\For{$k = 0, \dots, M-1$}
 \State $[A]_{i, j=\theta(k, 0), \dots, \theta(k, 2)}
 \gets [A]_{i, j=\theta(k, 0), \dots, \theta(k, 2)} + [A^{K_k}]$
 \Comment{add the \( k \)-th elemental matrix}
