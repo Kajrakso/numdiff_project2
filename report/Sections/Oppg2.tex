@@ -37,21 +37,27 @@ To find a solution we interpret this as a minimization problem for the unknown c
     \min_{\mathbf{y,u} \in \mathds{R}^{2N-1}} G(\mathbf{y, u}) \quad \text{s.t.} \quad B\mathbf{y} = F\mathbf{u}.
 \end{equation}
 For $F$ and $B$ we use each side of the constraint from (\ref{eq:OCP_FE}), 
-\begin{align*}
+\begin{equation}
+\begin{split}
     a(y_h, v) &= \int_0^1 \left( \sum_{i=1}^{2N-1} y_i \varphi_i'  \right) \left( \sum_{j=1}^{2N-1} v_j \varphi_j'\right)dx  \\
     & = \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i v_j\int_0^1  \varphi_i' \varphi_j' dx \\
     &= \mathbf{v}^T B \mathbf{y} ,
-\end{align*}
+\end{split}
+\end{equation}
 where $B_{i,j} = \int_0^1 \varphi_i' \varphi_j'dx$,  $i,j = 1, \dots, 2N-1$, which is the stiffness matrix, and  
-\begin{align*}
+\begin{equation}
+\begin{split}
     \langle u_h, v \rangle_{L^2(\Omega)} &= \int_0^1 \left( \sum_{i=1}^{2N-1} u_i \varphi_i \right) \left( \sum_{j=1}^{2N-1} v_j \varphi_j \right) dx \\
     &= \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i v_j\int_0^1  \varphi_i \varphi_j dx \\
     &= \mathbf{v}^T F \mathbf{u} , 
-\end{align*}
+\end{split}
+\end{equation}
  where $F_{i,j}=\int_0^1  \varphi_i \varphi_j dx$, $i,j = 1, \dots, 2N-1$.
 Hence \( \mathbf{v}^T B \mathbf{y} = \mathbf{v}^T F \mathbf{u}  \) and
 since the constraint holds for all $\mathbf{v} \in V_h$, we get that
-$$B\mathbf{y} = F \mathbf{u}.$$
+\begin{equation}
+  B\mathbf{y} = F \mathbf{u}.
+\end{equation}
 
 We find $G(\mathbf{y, u})$ by rewriting the objective function of (\ref{eq:OCP_FE}).
 Since the desired profile is an interpolation, we know that $\bar{y}_d = \sum_{i=0}^{2N}d_i\varphi_i$,
@@ -68,20 +74,21 @@ giving the form
      &= \frac{1}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} y_i y_j \int_0^1 \varphi_i \varphi_j dx + \frac{1}{2}\sum_{i=0}^{2N}\sum_{j=0}^{2N} d_i d_j \int_0^1 \varphi_i \varphi_j dx \\
     &\quad- \sum_{i=1}^{2N-1} \sum_{j=0}^{2N} y_i d_i \int_0^1 \varphi_i \varphi_j dx +  \frac{\alpha}{2}\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} u_i u_j \int_0^1\varphi_i \varphi_j dx.
 \end{align*}
-We can rewrite this in the form
-$$
+Writing this expression in matrix-vector form,
+\begin{equation}
 G(\mathbf{y, u}) = \frac{1}{2}\mathbf{y}^T F \mathbf{y} + \frac{1}{2}\mathbf{d}^T\Tilde{F} \mathbf{d} - \mathbf{y}^T\hat{F}\mathbf{d} + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u},
-$$
+\end{equation}
 where $\Tilde{F} \in \mathds{R}^{(2N+1) \times (2N+1)}$
 is $F$, but extended to include the boundaries.
 $\hat{F} \in \mathds{R}^{(2N-1) \times (2N+1)}$ is the same as $\Tilde{F}$ but with the first and last row removed.  
 
 To solve equation (\ref{eq:OCP_coeff}) we use Lagrange multipliers and the Lagrangian
-\begin{align}
-    \label{eq:OCP_lagrangian}
+\begin{equation} \label{eq:OCP_lagrangian}
+\begin{split}
     \mathcal{L}(\mathbf{y, u, \lambda}) &= G(\mathbf{y, u}) - \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right) \\
     &= \frac{1}{2}\mathbf{y}^T F \mathbf{y} + \frac{1}{2}\mathbf{d}^T\Tilde{F} \mathbf{d} - \mathbf{y}^T\hat{F}\mathbf{d} + \frac{\alpha}{2}\mathbf{u}^T F \mathbf{u}  - \mathbf{\lambda}^T \left( B\mathbf{y} - F\mathbf{u} \right) ,
-\end{align}
+\end{split}
+\end{equation}
 where $\mathbf{\lambda} \in \mathds{R}^{2N-1}$ is the vector of Lagrange multipliers.
 The solution is found by solving
 \begin{align}
@@ -138,13 +145,13 @@ This gives the system
 An explicit solution can be found by seeing that $\mathbf{u}=F^{-1}B \mathbf{y}$, and getting
 $$ F\mathbf{y} + \alpha B F^{-1}B \mathbf{y} = \hat{F}\mathbf{d},$$
 which gives the solutions
-\begin{align*}
+\begin{align}
     \mathbf{y} &= \left[F + \alpha B F^{-1}B \right]^{-1} \hat{F}\mathbf{d} \\
     \mathbf{u} &= F^{-1} B \left[F + \alpha B F^{-1}B \right]^{-1} \hat{F}\mathbf{d},
-\end{align*}
+\end{align}
 where $\left[F + \alpha B F^{-1}B \right]^{-1}$ exists since $\alpha > 0$ and it is therefore the inverse of the sum of positive definite matrices.
 The system can also be written in block matrix form as
-$$
+\begin{equation}
 \begin{bmatrix}
    F & \alpha B \\
    -B & F \\
@@ -157,7 +164,7 @@ $$
 \begin{bmatrix} \hat{F}\mathbf{d} \\
     \mathbf{0}
 \end{bmatrix}.
-$$
+\end{equation}
 
 This system has sparse sub-blocks, which is solved
 efficiently by a sparse solver.

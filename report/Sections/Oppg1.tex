@@ -32,11 +32,13 @@ to \( 0 \).
 Let \( \hat{K} = [0, 1] \) serve as the reference element.
 The Lagrange interpolating polynomials (shape functions)
 on the nodes \( (0, \frac{1}{2}, 1) \) are
-\begin{align}
+\begin{equation} \label{eq:Lagrange_nodes}
+\begin{split}
   \Psi_0(x) &= 2x^2 - 3x + 1\\
   \Psi_1(x) &= -4x^2 + 2x\\
   \Psi_2(x) &= 2x^2 - x
-\end{align}
+\end{split}
+\end{equation}
 
 We partition the interval \( K = [0, 1] \) into \( M + 1 \) points.
 Given a partition \( 0 = s_0 < s_1 < \dots < s_M = 1  \)
@@ -60,10 +62,12 @@ local to global map \( \theta \):
 
 The following bijection maps the reference element onto
 the \( k \)-th physical element.
-\begin{align}
+\begin{equation} \label{eq:ref2phys}
+\begin{split}
   \Phi_k : \hat{K} &\longrightarrow  K \\
   \xi & \longmapsto \xi s_{k+1} + (1-\xi) s_{k}
-\end{align}
+\end{split}
+\end{equation}
 
 The \( i \)'th basis function is denoted by \( \varphi_i \)
 and is defined as
