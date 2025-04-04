@@ -62,7 +62,14 @@ def task2() -> None:
             y_sol, u_sol = OCP(yd, partition, alpha, deg=deg)
 
             axs[0, i].plot(x, yd(x), label="desired temp. profile")
-            plotting_tools.plot_solution(axs[0, i], partition, y_sol, deg=deg, color="r")
+            plotting_tools.plot_solution(
+                axs[0, i],
+                partition,
+                y_sol,
+                deg=deg,
+                color="r",
+                label="optimal state"
+            )
             axs[0, i].set(xlim=(xi, xf), title=yd.__doc__)
 
             plotting_tools.plot_solution(axs[1, i], partition, u_sol, deg=deg, color="r")
