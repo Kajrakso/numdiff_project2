@@ -1,16 +1,10 @@
 \section{A PDE optimal control problem}
-NY:
 We have some physical one-dimensional object, $\Omega = (0, 1)$, that we wish to give a desired temperature profile $y_d \in L^2 (\Omega)$.
 The boundaries of the object are set to a (relative) temperature of $0$. 
 There is some heat source $u$ that we have control over, but there is a cost $\alpha \in (0, \infty)$ associated with both cooling and heating the object.
 
-GAMMEL:
-A physical object $\Omega = (0, 1)$ is to be heated or cooled to some desired temperature profile $y_d \in L^2 (\Omega)$. The (relative) temperature is $0$ at the boundaries. 
-We can control a heat source $u$ and there is some cost $\alpha \in (0, \infty)$ associated with heating/cooling the object.
-
-
 Our problem is then to minimize the discrepancy between the desired profile and the temperature profile of the object, while simultaneously minimizing the cost of the heating/cooling.
-Our problem then becomes
+A model for the problem is then
 \begin{equation}
     \label{eq:OCP}
     \min_{y, u} \frac{1}{2} \int_0^1 \lvert y - y_d \rvert^2 dx + \frac{\alpha}{2}\int_0^1u^2 dx
@@ -122,7 +116,7 @@ yields the system
     $B$ is positive definite.
 \end{lemma}
 \begin{proof}
-    Let $\mathbf{z} \in \mathds{R}^{(2N-1)}$, then 
+    Let $\mathbf{z} \in \mathds{R}^{2N-1}, \mathbf{z} \neq 0$. Then 
     $$\mathbf{z}^T B \mathbf{z} = \sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1} z_i B_{i,j}z_j =\sum_{i=1}^{2N-1}\sum_{j=1}^{2N-1}a(v_i \varphi_i, v_j\varphi_j) >0 .$$
 \end{proof}
 
@@ -132,7 +126,7 @@ yields the system
 \begin{proof}
     $F^{-1}$ is positive definite since it is the inverse of a positive definite matrix and $\ker(B) = \{0\}$ since $B$ is positive definite, by lemma (\ref{lemma:B_pos_def}).
     
-    Let $\mathbf{z} \in \mathds{R}^{2N-1}$,
+    Let $\mathbf{z} \in \mathds{R}^{2N-1}, \mathbf{z} \neq 0$. Then
     $$\mathbf{z}^T BF^{-1}B \mathbf{z} = (B\mathbf{z})^T F^{-1}(B\mathbf{z}) > 0.$$
 \end{proof}
 Since $F$ is invertible, by lemma (\ref{lemma:F_invertible}), we see that $\alpha \mathbf{u}= -\mathbf{\lambda}$. 
@@ -212,17 +206,19 @@ We see that for both high and typical costs,
 both the optimal control and state are smooth.
 
 In contrast, for low costs, the optimal control
-is rather extreme at the boundaries and at
-the discontinuities. TODO: Why?
+oscillates rapidly and with
+high amplitude at the boundaries \eqref{eq:des_2} and at
+the discontinuities \eqref{eq:des_3}. 
 
-\begin{figure}
+
+\begin{figure}[!h]
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_0.pdf}
   \caption{An optimized control problem for various
     desired temperature profiles. The upper row plots the
     desired temperature profiles and the corresponding 
     optimal state. The lower row plots the
-    optimal state for the corresponding problem.
+    optimal control for the corresponding problem.
     The cost parameter, $\alpha$, is set to high value.
     To find the optimal state and the optimal control we 
     have partitioned the interval into \( 20 \) elements.
@@ -230,14 +226,14 @@ the discontinuities. TODO: Why?
   \label{fig:0}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!h]
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_1.pdf}
   \caption{An optimized control problem for various
     desired temperature profiles. The upper row plots the
     desired temperature profiles and the corresponding 
     optimal state. The lower row plots the
-    optimal state for the corresponding problem.
+    optimal control for the corresponding problem.
     The cost parameter, $\alpha$, is set to typical value.
     To find the optimal state and the optimal control we 
     have partitioned the interval into \( 20 \) elements.
@@ -245,14 +241,14 @@ the discontinuities. TODO: Why?
   \label{fig:1}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!h]
   \centering
   \includegraphics[width=\textwidth]{Images/plots/task2_fig_2.pdf}
   \caption{An optimized control problem for various
     desired temperature profiles. The upper row plots the
     desired temperature profiles and the corresponding 
     optimal state. The lower row plots the
-    optimal state for the corresponding problem.
+    optimal control for the corresponding problem.
     The cost parameter, $\alpha$, is set to low value.
     To find the optimal state and the optimal control we 
     have partitioned the interval into \( 20 \) elements.
